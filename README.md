@@ -13,7 +13,7 @@ Un jeu 2D en C inspiré de The Binding of Isaac, développé avec SDL2.
 ### Windows (MSYS2)
 
 ```bash
-pacman -S mingw-w64-x86_64-SDL2
+pacman -S mingw-w64-x86_64-SDL2 mingw-w64-x86_64-SDL2_image
 ```
 
 ## Compilation et exécution
@@ -22,7 +22,7 @@ pacman -S mingw-w64-x86_64-SDL2
 
 ```bash
 # Compiler
-gcc -o game main.c -lmingw32 -lSDL2main -lSDL2
+gcc -o game main.c player.c -lmingw32 -lSDL2main -lSDL2 -lSDL2_image
 
 # Exécuter
 ./game.exe
@@ -30,6 +30,10 @@ gcc -o game main.c -lmingw32 -lSDL2main -lSDL2
 
 ## Contrôles actuels
 
+- **Z / Flèche Haut** : Monter
+- **S / Flèche Bas** : Descendre
+- **Q / Flèche Gauche** : Aller à gauche
+- **D / Flèche Droite** : Aller à droite
 - **ESC** : Quitter le jeu
 
 ## État du projet
@@ -37,7 +41,9 @@ gcc -o game main.c -lmingw32 -lSDL2main -lSDL2
 - ✅ Fenêtre SDL2 de base (800x600)
 - ✅ Boucle principale avec gestion des événements
 - ✅ Rendu 2D avec SDL_Renderer
-- ⏳ Déplacement du joueur
+- ✅ Déplacement du joueur avec delta time
+- ✅ Sprites selon la direction
+- ✅ Structure Player modulaire
 - ⏳ Système de tir
 - ⏳ Gestion des collisions
 - ⏳ Ennemis et objets
@@ -47,7 +53,15 @@ gcc -o game main.c -lmingw32 -lSDL2main -lSDL2
 ## Structure du projet
 
 ```
-Projet C/
-├── main.c              # Code principal du jeu
+projet-c/
+├── assets/             # Ressources graphiques
+│   ├── personnage_bas.png
+│   ├── personnage_haut.png
+│   ├── personnage_gauche.png
+│   └── personnage_droite.png
+├── main.c              # Code principal et boucle de jeu
+├── player.h            # Déclarations de la structure Player
+├── player.c            # Implémentation du joueur (init, update, render)
+├── game.exe            # Exécutable compilé
 └── README.md           # Documentation
 ```
