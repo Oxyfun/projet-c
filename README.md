@@ -24,9 +24,6 @@ pacman -S mingw-w64-x86_64-SDL2
 # Compiler
 gcc -o game main.c -lmingw32 -lSDL2main -lSDL2
 
-# Ou utiliser le script batch
-./compile.bat
-
 # Exécuter
 ./game.exe
 ```
