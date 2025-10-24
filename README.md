@@ -51,17 +51,17 @@ gcc -o game main.c player.c -lmingw32 -lSDL2main -lSDL2 -lSDL2_image -lm
 
 ## État du projet
 
-✅ Fenêtre SDL2 de base (800x600)
-✅ Boucle principale avec gestion des événements
-✅ Rendu 2D avec SDL_Renderer
-✅ Déplacement du joueur avec delta time
-✅ Sprites selon la direction
-✅ Structure Player modulaire
-✅ Système de tir
-⏳ Gestion des collisions
-⏳ Ennemis et objets
-⏳ Salles et transitions
-⏳ Mini-boss
+- ✅ Fenêtre SDL2 de base (800x600)
+- ✅ Boucle principale avec gestion des événements
+- ✅ Rendu 2D avec SDL_Renderer
+- ✅ Déplacement du joueur avec delta time
+- ✅ Sprites selon la direction
+- ✅ Structure Player modulaire
+- ✅ Système de tir
+- ⏳ Gestion des collisions
+- ⏳ Ennemis et objets
+- ⏳ Salles et transitions
+- ⏳ Mini-boss
 
 ## Structure du projet
 
