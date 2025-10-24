@@ -54,6 +54,15 @@ int main(int argc, char *argv[]) {
     Player player;
     player_init(&player, renderer);
     
+    // Initialisation des projectiles
+    const int MAX_PROJECTILES = 50;  // Maximum 50 projectiles à la fois
+    Projectile projectiles[MAX_PROJECTILES];
+    
+    // Initialiser tous les projectiles comme inactifs
+    for (int i = 0; i < MAX_PROJECTILES; i++) {
+        projectiles[i].active = false;
+    }
+    
     // Variables pour le delta time
     Uint32 last_time = SDL_GetTicks();
     
@@ -62,7 +71,8 @@ int main(int argc, char *argv[]) {
     SDL_Event event;
 
     printf("Fenêtre SDL2 créée avec succès !\n");
-    printf("Utilisez ZQSD ou les flèches pour bouger.\n");
+    printf("Utilisez ZQSD pour bouger.\n");
+    printf("Utilisez les flèches directionnelles pour tirer.\n");
     printf("Appuyez sur ESC ou fermez la fenêtre pour quitter.\n");
 
     while (running) {
@@ -87,20 +97,40 @@ int main(int argc, char *argv[]) {
         
         // Mise à jour du joueur
         const Uint8* keys = SDL_GetKeyboardState(NULL);
-        player_update(&player, keys, delta_time);
+        player_update(&player, keys, delta_time, projectiles, MAX_PROJECTILES, renderer);
+        
+        // Mise à jour des projectiles
+        for (int i = 0; i < MAX_PROJECTILES; i++) {
+            if (projectiles[i].active) {
+                projectile_update(&projectiles[i], delta_time);
+            }
+        }
 
         // Rendu
         SDL_SetRenderDrawColor(renderer, 50, 50, 50, 255); // Fond gris
         SDL_RenderClear(renderer); // Clear toute la fenêtre
         
         // Rendu du joueur
-        player_render(renderer, &player); // Afiche le joueur
+        player_render(renderer, &player); // Affiche le joueur
+        
+        // Rendu des projectiles
+        for (int i = 0; i < MAX_PROJECTILES; i++) {
+            if (projectiles[i].active) {
+                projectile_render(renderer, &projectiles[i]);
+            }
+        }
 
         SDL_RenderPresent(renderer); // Affiche le rendu
     }
 
     // Nettoyage
     player_cleanup(&player);
+    
+    // Nettoyage des projectiles
+    for (int i = 0; i < MAX_PROJECTILES; i++) {
+        projectile_cleanup(&projectiles[i]);
+    }
+    
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
     IMG_Quit();
