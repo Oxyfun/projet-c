@@ -15,6 +15,10 @@ typedef struct {
     // Dimensions
     float w, h;
     
+    // Stats du joueur
+    float speed;           // Vitesse de déplacement
+    float max_x, max_y;    // Limites de l'écran (pour éviter les valeurs en dur)
+    
     // État
     bool alive;
     

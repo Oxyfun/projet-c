@@ -1,4 +1,5 @@
 #include <SDL2/SDL_image.h>
+#include <math.h>  // Pour la fonction sqrt
 #include "player.h"
 // Fonction pour charger une texture
 SDL_Texture* load_texture(SDL_Renderer* renderer, const char* path) {
@@ -30,6 +31,11 @@ void player_init(Player* p, SDL_Renderer* renderer) {
     p->alive = true;
     p->direction = 0; // Commence vers le bas
     
+    // Stats du joueur
+    p->speed = 200.0f;        // Vitesse de déplacement
+    p->max_x = 800.0f;        // Limite droite de l'écran
+    p->max_y = 600.0f;        // Limite basse de l'écran
+    
     // Chargement des textures
     p->texture_up = load_texture(renderer, "assets/personnage_haut.png");
     p->texture_down = load_texture(renderer, "assets/personnage_bas.png");
@@ -44,43 +50,65 @@ void player_init(Player* p, SDL_Renderer* renderer) {
 void player_update(Player* p, const Uint8* keys, float dt) {
     if (!p->alive) return;
     
-    // Vitesse de déplacement
-    float speed = 200.0f; // à changer plus tard pour le mettre dans ses stats 
+    // Variables pour les directions
+    float move_x = 0.0f;
+    float move_y = 0.0f;
     
     // Gestion des touches et direction
     if (keys[SDL_SCANCODE_W] || keys[SDL_SCANCODE_UP]) {
-        p->vy = -speed;
-        p->direction = 1; // Haut
-        p->current_texture = p->texture_up;
-    } else if (keys[SDL_SCANCODE_S] || keys[SDL_SCANCODE_DOWN]) {
-        p->vy = speed;
-        p->direction = 0; // Bas
-        p->current_texture = p->texture_down;
+        move_y = -1.0f;  // Vers le haut
+    }
+    if (keys[SDL_SCANCODE_S] || keys[SDL_SCANCODE_DOWN]) {
+        move_y = 1.0f;   // Vers le bas
+    }
+    if (keys[SDL_SCANCODE_A] || keys[SDL_SCANCODE_LEFT]) {
+        move_x = -1.0f;  // Vers la gauche
+    }
+    if (keys[SDL_SCANCODE_D] || keys[SDL_SCANCODE_RIGHT]) {
+        move_x = 1.0f;   // Vers la droite
+    }
+    
+    // éviter la vitesse diagonale trop rapide
+    if (move_x != 0.0f || move_y != 0.0f) {
+        // Calcul de la longueur du vecteur
+        float magnitude = sqrt(move_x * move_x + move_y * move_y);
+        
+        // diviser par la magnitude pour avoir un vecteur unitaire
+        move_x = move_x / magnitude;
+        move_y = move_y / magnitude;
+        
+        p->vx = move_x * p->speed;
+        p->vy = move_y * p->speed;
+        
+        // Mise à jour de la direction et texture
+        if (move_y < 0) {
+            p->direction = 1; // Haut
+            p->current_texture = p->texture_up;
+        } else if (move_y > 0) {
+            p->direction = 0; // Bas
+            p->current_texture = p->texture_down;
+        } else if (move_x < 0) {
+            p->direction = 2; // Gauche
+            p->current_texture = p->texture_left;
+        } else if (move_x > 0) {
+            p->direction = 3; // Droite
+            p->current_texture = p->texture_right;
+        }
     } else {
+        // Aucune touche pressée
+        p->vx = 0.0f;
         p->vy = 0.0f;
     }
     
-    if (keys[SDL_SCANCODE_A] || keys[SDL_SCANCODE_LEFT]) {
-        p->vx = -speed;
-        p->direction = 2; // Gauche
-        p->current_texture = p->texture_left;
-    } else if (keys[SDL_SCANCODE_D] || keys[SDL_SCANCODE_RIGHT]) {
-        p->vx = speed;
-        p->direction = 3; // Droite
-        p->current_texture = p->texture_right;
-    } else {
-        p->vx = 0.0f;
-    }
-    
     // Mise à jour position
-    p->x += p->vx * dt; // dt est le delta time au cas ou
+    p->x += p->vx * dt; // dt est le delta time
     p->y += p->vy * dt;
     
-    // Limites écran
+    // Limites écran (utilisant les propriétés de la structure)
     if (p->x < 0) p->x = 0;
-    if (p->x + p->w > 800) p->x = 800 - p->w;
+    if (p->x + p->w > p->max_x) p->x = p->max_x - p->w;
     if (p->y < 0) p->y = 0;
-    if (p->y + p->h > 600) p->y = 600 - p->h;
+    if (p->y + p->h > p->max_y) p->y = p->max_y - p->h;
 }
 
 // Rendu du joueur
