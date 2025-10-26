@@ -1,7 +1,7 @@
 #ifndef PLAYER_H // Au cas ou on inclut plusieurs fois le fichier
 #define PLAYER_H
 
-#include <SDL2/SDL.h>
+#include <SDL.h>
 #include <stdbool.h>
 
 // Structure joueur - version basique et optimisée
@@ -57,6 +57,8 @@ typedef struct {
     
     // Visuel
     float size;             // Taille du projectile
+    float angle;
+    float angle_speed;
     SDL_Texture* texture;   // Texture du projectile
 } Projectile;
 

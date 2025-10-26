@@ -1,4 +1,4 @@
-#include <SDL2/SDL_image.h>
+#include <SDL_image.h>
 #include <math.h>  // Pour la fonction sqrt
 #include "player.h"
 // Fonction pour charger une texture
@@ -216,6 +216,8 @@ void projectile_init(Projectile* proj, float x, float y, int direction, float sp
     proj->lifetime = 0.0f;
     proj->max_lifetime = 3.0f;  // 3 secondes de vie
     proj->size = 20.0f;         // Taille d'affichage du projectile (3x plus grand)
+    proj->angle = 0.0f;
+    proj->angle_speed = 200.0f;
     
     // Charger la texture du projectile
     proj->texture = load_texture(renderer, "assets/images/projectiles/proj.png");
@@ -264,6 +266,9 @@ void projectile_update(Projectile* proj, float dt) {
     if (proj->x < 0 || proj->x > 800 || proj->y < 0 || proj->y > 600) {
         proj->active = false;
     }
+
+    //rotation tir
+    proj->angle += proj->angle_speed * dt;
 }
 
 // Rendu d'un projectile
@@ -279,9 +284,13 @@ void projectile_render(SDL_Renderer* r, Projectile* proj) {
     };
     
     // Rendu de la texture si disponible
-    if (proj->texture != NULL) {
-        SDL_RenderCopy(r, proj->texture, NULL, &rect);
-    } else {
+    if (proj->texture != NULL) 
+    {
+        SDL_Point center = { rect.w / 2, rect.h / 2 };
+
+        SDL_RenderCopyEx(r, proj->texture, NULL, &rect, proj->angle, &center, SDL_FLIP_NONE);
+    } 
+    else {
         // Fallback : carré jaune si pas de texture
         SDL_SetRenderDrawColor(r, 255, 255, 0, 255);  // Jaune
         SDL_RenderFillRect(r, &rect);
