@@ -4,6 +4,7 @@
 #include <SDL2/SDL.h>
 #include <stdbool.h>
 
+
 // Structure joueur - version basique et optimisée
 typedef struct {
     // Position
@@ -62,7 +63,7 @@ typedef struct {
 
 // Fonctions essentielles
 void player_init(Player* p, SDL_Renderer* renderer);
-void player_update(Player* p, const Uint8* keys, float dt, Projectile* projectiles, int max_projectiles, SDL_Renderer* renderer);
+void player_update(Player* p, const Uint8* keys, float dt, Projectile* projectiles, int max_projectiles, SDL_Renderer* renderer, void* decor_manager);
 void player_render(SDL_Renderer* r, Player* p);
 void player_cleanup(Player* p);
 
@@ -72,8 +73,11 @@ bool player_can_shoot(Player* p, float current_time);
 
 // Fonctions pour les projectiles
 void projectile_init(Projectile* proj, float x, float y, int direction, float speed, float damage, SDL_Renderer* renderer);
-void projectile_update(Projectile* proj, float dt);
+void projectile_update(Projectile* proj, float dt, void* decor_manager);
 void projectile_render(SDL_Renderer* r, Projectile* proj);
 void projectile_cleanup(Projectile* proj);
+
+// Fonction de collision pour le joueur
+bool player_check_collision(Player* p, float new_x, float new_y, void* decor_manager);
 
 #endif

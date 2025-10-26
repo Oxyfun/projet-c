@@ -22,7 +22,7 @@ pacman -S mingw-w64-x86_64-SDL2 mingw-w64-x86_64-SDL2_image
 
 ```bash
 # Compiler
-gcc -o game main.c player.c -lmingw32 -lSDL2main -lSDL2 -lSDL2_image -lm
+gcc -o game main.c player.c decor.c -lmingw32 -lSDL2main -lSDL2 -lSDL2_image -lm
 
 # Exécuter
 ./game.exe

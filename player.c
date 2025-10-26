@@ -1,6 +1,13 @@
 #include <SDL2/SDL_image.h>
 #include <math.h>  // Pour la fonction sqrt
 #include "player.h"
+
+// Fonctions de collision du décor
+extern bool decor_check_collision_with_grid(void* manager, float x, float y, float w, float h);
+extern bool decor_check_horizontal_collision(void* manager, float x, float y, float w, float h);
+extern bool decor_check_vertical_collision_up(void* manager, float x, float y, float w, float h);
+extern bool decor_check_vertical_collision_down(void* manager, float x, float y, float w, float h);
+extern bool decor_check_projectile_collision(void* manager, float x, float y, float size);
 // Fonction pour charger une texture
 SDL_Texture* load_texture(SDL_Renderer* renderer, const char* path) {
     SDL_Surface* surface = IMG_Load(path);
@@ -9,7 +16,7 @@ SDL_Texture* load_texture(SDL_Renderer* renderer, const char* path) {
         return NULL;
     }
     
-    SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface); // Conversion en texture pour l'opti
+    SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface); // Conversion en texture
     SDL_FreeSurface(surface);
     
     if (texture == NULL) {
@@ -32,15 +39,15 @@ void player_init(Player* p, SDL_Renderer* renderer) {
     p->direction = 0; // Commence vers le bas
     
     // Stats du joueur
-    p->speed = 200.0f;        // Vitesse de déplacement
-    p->max_x = 800.0f;        // Limite droite de l'écran
-    p->max_y = 600.0f;        // Limite basse de l'écran
+    p->speed = 200.0f;        // Vitesse
+    p->max_x = 800.0f;        // Limite droite
+    p->max_y = 600.0f;        // Limite basse
     
     // Stats de tir
-    p->projectile_damage = 10.0f;     // Dégâts des projectiles
-    p->fire_rate = 2.0f;              // 2 projectiles par seconde
-    p->last_shot_time = 0.0f;         // Pas encore tiré
-    p->projectile_speed = 300.0f;      // Vitesse des projectiles
+    p->projectile_damage = 10.0f;     // Dégâts
+    p->fire_rate = 2.0f;              // Cadence de tir
+    p->last_shot_time = 0.0f;         // Dernier tir
+    p->projectile_speed = 300.0f;      // Vitesse des tirs
     
     // Chargement des textures
     p->texture_up = load_texture(renderer, "assets/images/personnages/personnage_haut.png");
@@ -52,8 +59,23 @@ void player_init(Player* p, SDL_Renderer* renderer) {
     p->current_texture = p->texture_down;
 }
 
-// Mise à jour du joueur
-void player_update(Player* p, const Uint8* keys, float dt, Projectile* projectiles, int max_projectiles, SDL_Renderer* renderer) {
+// Fonction de collision pour le joueur (vérifie les pieds ET les côtés)
+bool player_check_collision(Player* p, float new_x, float new_y, void* decor_manager) {
+    if (decor_manager == NULL) return false;
+    
+    // Vérifier les limites de l'écran d'abord
+    if (new_x < 0 || new_x + p->w > p->max_x || 
+        new_y < 0 || new_y + p->h > p->max_y) {
+        return true; // Collision avec les bords
+    }
+    
+    // Vérifier la collision avec les éléments de décor
+    // On vérifie toute la taille du joueur pour les collisions latérales
+    return decor_check_collision_with_grid(decor_manager, new_x, new_y, p->w, p->h);
+}
+
+// Mise à jour du joueur avec collision
+void player_update(Player* p, const Uint8* keys, float dt, Projectile* projectiles, int max_projectiles, SDL_Renderer* renderer, void* decor_manager) {
     if (!p->alive) return;
     
     // Variables pour les directions
@@ -106,15 +128,46 @@ void player_update(Player* p, const Uint8* keys, float dt, Projectile* projectil
         p->vy = 0.0f;
     }
     
-    // Mise à jour position
-    p->x += p->vx * dt; // dt est le delta time
-    p->y += p->vy * dt;
+    // Calculer la nouvelle position
+    float new_x = p->x + p->vx * dt;
+    float new_y = p->y + p->vy * dt;
     
-    // Limites écran (utilisant les propriétés de la structure)
-    if (p->x < 0) p->x = 0;
-    if (p->x + p->w > p->max_x) p->x = p->max_x - p->w;
-    if (p->y < 0) p->y = 0;
-    if (p->y + p->h > p->max_y) p->y = p->max_y - p->h;
+    // Vérifier les collisions avant de déplacer
+    // Séparer les collisions horizontales et verticales pour un mouvement plus naturel
+    // Ça évite que le joueur soit bloqué si seulement une partie de son corps touche un obstacle
+    
+    // Mouvement horizontal (gauche/droite)
+    if (p->vx != 0) {
+        // Vérifier les limites de l'écran d'abord (sinon le joueur peut sortir de la fenêtre)
+        if (new_x >= 0 && new_x + p->w <= p->max_x) {
+            // Vérifier collision avec les éléments de décor (rochers, murs, etc.)
+            if (!decor_check_horizontal_collision(decor_manager, new_x, p->y, p->w, p->h)) {
+                p->x = new_x; // Déplacement horizontal OK
+            }
+        }
+    }
+    
+    // Mouvement vertical (haut/bas) - utiliser les fonctions spécialisées
+    if (p->vy != 0) {
+        // Vérifier les limites de l'écran d'abord (sinon le joueur peut sortir de la fenêtre)
+        if (new_y >= 0 && new_y + p->h <= p->max_y) {
+            bool can_move = false;
+            
+            if (p->vy < 0) {
+                // Mouvement vers le haut - vérifier seulement la tête
+                // Ça permet de passer sous les obstacles si on a juste la tête qui touche
+                can_move = !decor_check_vertical_collision_up(decor_manager, p->x, new_y, p->w, p->h);
+            } else {
+                // Mouvement vers le bas - vérifier seulement les pieds
+                // Ça permet de descendre même si les "oreilles" du joueur touchent un obstacle
+                can_move = !decor_check_vertical_collision_down(decor_manager, p->x, new_y, p->w, p->h);
+            }
+            
+            if (can_move) {
+                p->y = new_y; // Déplacement vertical OK
+            }
+        }
+    }
     
     // Gestion du tir avec les flèches directionnelles
     float current_time = SDL_GetTicks() / 1000.0f;
@@ -244,13 +297,20 @@ void projectile_init(Projectile* proj, float x, float y, int direction, float sp
     }
 }
 
-// Mise à jour d'un projectile
-void projectile_update(Projectile* proj, float dt) {
+// Mise à jour d'un projectile avec collision
+void projectile_update(Projectile* proj, float dt, void* decor_manager) {
     if (!proj->active) return;
     
     // Mise à jour de la position
     proj->x += proj->vx * dt;
     proj->y += proj->vy * dt;
+    
+    // Vérifier les collisions avec les éléments de décor
+    if (decor_manager != NULL && decor_check_projectile_collision(decor_manager, proj->x, proj->y, proj->size)) {
+        // Le projectile est bloqué par un élément solide
+        proj->active = false; // Désactiver le projectile
+        return;
+    }
     
     // Mise à jour de la durée de vie
     proj->lifetime += dt;
