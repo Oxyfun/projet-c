@@ -132,12 +132,16 @@ void player_update(Player* p, const Uint8* keys, float dt, Projectile* projectil
     if (free_projectile != NULL && player_can_shoot(p, current_time)) {
         if (keys[SDL_SCANCODE_DOWN]) {
             player_shoot(p, free_projectile, 0, renderer);  // Bas
+            p->current_texture = p->texture_down;
         } else if (keys[SDL_SCANCODE_UP]) {
             player_shoot(p, free_projectile, 1, renderer);  // Haut
+            p->current_texture = p->texture_up;
         } else if (keys[SDL_SCANCODE_LEFT]) {
             player_shoot(p, free_projectile, 2, renderer);  // Gauche
+            p->current_texture = p->texture_left;
         } else if (keys[SDL_SCANCODE_RIGHT]) {
             player_shoot(p, free_projectile, 3, renderer);  // Droite
+            p->current_texture = p->texture_right;
         }
     }
 }
