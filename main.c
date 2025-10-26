@@ -70,10 +70,10 @@ int main(int argc, char* argv[]) {
     bool running = true;
     SDL_Event event;
 
-    printf("Fenêtre SDL2 créée avec succès !\n");
+    printf("Fenetre SDL2 cree avec succes !\n");
     printf("Utilisez ZQSD pour bouger.\n");
-    printf("Utilisez les flèches directionnelles pour tirer.\n");
-    printf("Appuyez sur ESC ou fermez la fenêtre pour quitter.\n");
+    printf("Utilisez les fleches directionnelles pour tirer.\n");
+    printf("Appuyez sur ESC ou fermez la fenetre pour quitter.\n");
 
     while (running) {
         // Calcul du delta time, si ya pas ça la vitesse du joueur sera proportionnelle aux FPS
