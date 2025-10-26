@@ -52,3 +52,6 @@ packages/
 *.swp
 *.tmp
 *.bak
+projet-c-isac.vcxproj
+projet-c-isac.sln
+projet-c-isac.vcxproj.filters
