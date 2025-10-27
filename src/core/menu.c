@@ -141,7 +141,7 @@ void menu_init(Menu* menu, SDL_Renderer* renderer) {
                 "assets/images/menu/btn_editor_pressed.png",
                 on_level_editor_clicked);
 
-    button_init(&menu->btn_quit, 650, 520, 120, 40, renderer,
+    button_init(&menu->btn_quit, 500, 510, 120, 40, renderer,
                 "assets/images/menu/btn_quit_normal.png",
                 "assets/images/menu/btn_quit_hover.png",
                 "assets/images/menu/btn_quit_pressed.png",
