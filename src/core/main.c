@@ -3,6 +3,7 @@
 #include <stdbool.h>
 #include "../utils/sdl_common.h"
 #include "../player/player.h"
+#include "menu.h"
 
 // Constantes pour la fenêtre du jeu
 #define WINDOW_WIDTH 800
@@ -49,9 +50,13 @@ int main(int argc, char* argv[]) {
         exit(EXIT_FAILURE);
     }
 
-    // Initialisation du joueur
+    // Initialisation du menu
+    Menu menu;
+    menu_init(&menu, renderer);
+    
+    // Initialisation du joueur (sera initialisé quand on lance le jeu via le menu)
     Player player;
-    player_init(&player, renderer);
+    bool player_initialized = false;
 
     // Initialisation des projectiles
     enum { MAX_PROJECTILES = 50 };
@@ -70,10 +75,6 @@ int main(int argc, char* argv[]) {
     bool running = true;
     SDL_Event event;
 
-    printf("Utilisez ZQSD pour bouger.\n");
-    printf("Utilisez les fleches directionnelles pour tirer.\n");
-    printf("Appuyez sur ESC ou fermez la fenetre pour quitter.\n");
-
     while (running) {
         // Calcul du delta time, si ya pas ça la vitesse du joueur sera proportionnelle aux FPS
         Uint32 current_time = SDL_GetTicks();
@@ -81,54 +82,88 @@ int main(int argc, char* argv[]) {
         last_time = current_time;
 
         // Gestion des événements
-        while (SDL_PollEvent(&event)) { // On récupère les événements
-            switch (event.type) {
-            case SDL_QUIT: // Si on ferme la fenêtre via la croix
+        while (SDL_PollEvent(&event)) {
+            // Événements globaux
+            if (event.type == SDL_QUIT) {
                 running = false;
-                break;
-            case SDL_KEYDOWN: // Si on appuie sur une touche
-                if (event.key.keysym.sym == SDLK_ESCAPE) { // Si on appuie sur ESC
-                    running = false;
-                }
-                break;
+            }
+            
+            // echap ferme le jeu
+            if (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_ESCAPE) {
+                running = false;
+            }
+            
+            // Événements du menu
+            if (g_menu_state == MENU_STATE_MAIN_MENU) {
+                menu_update(&menu, &event);
             }
         }
-
-        // Mise à jour du joueur
-        const Uint8* keys = SDL_GetKeyboardState(NULL);
-        player_update(&player, keys, delta_time, projectiles, MAX_PROJECTILES, renderer);
-
-        // Mise à jour des projectiles
-        for (int i = 0; i < MAX_PROJECTILES; i++) {
-            if (projectiles[i].active) {
-                projectile_update(&projectiles[i], delta_time);
-            }
-        }
-
-        // Rendu
-        SDL_SetRenderDrawColor(renderer, 50, 50, 50, 255); // Fond gris
-        SDL_RenderClear(renderer); // Clear toute la fenêtre
-
-        // Rendu du joueur
-        player_render(renderer, &player); // Affiche le joueur
-
-        // Rendu des projectiles
-        for (int i = 0; i < MAX_PROJECTILES; i++) {
-            if (projectiles[i].active) {
-                projectile_render(renderer, &projectiles[i]);
-            }
-        }
-
-        SDL_RenderPresent(renderer); // Affiche le rendu
         
-        // si VSync ne marche pas c'est une petite backup
+        // Vérifier si on doit quitter
+        if (g_menu_state == MENU_STATE_QUIT) {
+            running = false;
+        }
+        
+        // Initialiser le joueur si on lance le jeu
+        if (g_menu_state == MENU_STATE_GAME && !player_initialized) {
+            player_init(&player, renderer);
+            player_initialized = true;
+            printf("ZQSD pour bouger | Flèches pour tirer\n");
+        }
+        
+        if (g_menu_state == MENU_STATE_GAME && player_initialized) {
+            // Mise à jour du jeu
+            const Uint8* keys = SDL_GetKeyboardState(NULL); // quelle touche pressé
+            player_update(&player, keys, delta_time, projectiles, MAX_PROJECTILES, renderer);
+            
+            // Mise à jour des projectiles
+            for (int i = 0; i < MAX_PROJECTILES; i++) {
+                if (projectiles[i].active) {
+                    projectile_update(&projectiles[i], delta_time);
+                }
+            }
+        } else if (g_menu_state == MENU_STATE_LEVEL_EDITOR) {
+            // ajouter ici l'éditeur de niveau dans le futur
+        }
+
+        SDL_RenderClear(renderer);
+        
+        if (g_menu_state == MENU_STATE_MAIN_MENU) {
+            // Afficher le menu
+            menu_render(renderer, &menu);
+        } else if (g_menu_state == MENU_STATE_GAME && player_initialized) {
+            // Afficher le jeu
+            SDL_SetRenderDrawColor(renderer, 50, 50, 50, 255);
+            SDL_RenderClear(renderer);
+            
+            player_render(renderer, &player);
+            
+            for (int i = 0; i < MAX_PROJECTILES; i++) {
+                if (projectiles[i].active) {
+                    projectile_render(renderer, &projectiles[i]);
+                }
+            }
+        } else if (g_menu_state == MENU_STATE_LEVEL_EDITOR) {
+            // Afficher l'éditeur
+            SDL_SetRenderDrawColor(renderer, 30, 30, 50, 255);
+            SDL_RenderClear(renderer);
+            // à faire
+        }
+
+        SDL_RenderPresent(renderer);
+        
+        // Backup si VSync ne marche pas
         SDL_Delay(1);
     }
 
     // Nettoyage
-    player_cleanup(&player);
+    menu_cleanup(&menu);
+    
+    if (player_initialized) {
+        player_cleanup(&player);
+    }
 
-    // Nettoyage des projectiles (seulement ceux qui ont une texture)
+    // Nettoyage des projectiles
     for (int i = 0; i < MAX_PROJECTILES; i++) {
         if (projectiles[i].texture != NULL) {
             projectile_cleanup(&projectiles[i]);
@@ -140,7 +175,6 @@ int main(int argc, char* argv[]) {
     IMG_Quit();
     SDL_Quit();
 
-    printf("Programme terminé.\n");
     exit(EXIT_SUCCESS);
 }
 

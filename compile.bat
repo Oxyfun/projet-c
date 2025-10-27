@@ -4,6 +4,7 @@ echo Compilation du projet Binding of Isaac...
 REM Compilation avec GCC
 gcc -o game.exe ^
     src/core/main.c ^
+    src/core/menu.c ^
     src/player/player.c ^
     src/player/projectile.c ^
     src/utils/assets.c ^

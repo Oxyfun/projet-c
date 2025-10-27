@@ -10,6 +10,7 @@ TARGET = game.exe
 
 # Fichiers source
 SOURCES = src/core/main.c \
+          src/core/menu.c \
           src/player/player.c \
           src/player/projectile.c \
           src/utils/assets.c
