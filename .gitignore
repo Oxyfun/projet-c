@@ -1,20 +1,56 @@
-# Fichiers de compilation
-*.o
-*.exe
-*.a
-*.so
-*.dll
+.vs/
+*.VC.db
+*.VC.opendb
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
 
-# Dossiers de build
-build/
-dist/
+[Bb]in/
+[Oo]bj/
+x64/
+x86/
+Debug/
+Release/
+ipch/
 
-# Fichiers temporaires
-*.tmp
+
 *.log
-*.swp
-*~
+*.tlog
+*.lastbuildstate
+*.cache
+*.pdb
+*.ilk
+*.exe
+*.dll
+*.lib
+*.exp
+*.idb
 
-# Fichiers système
-.DS_Store
-Thumbs.db
+
+*.opensdf
+*.sdf
+*.db
+*.opendb
+*.ipdb
+*.iobj
+
+
+packages/
+*.nupkg
+
+
+*.zip
+*.7z
+*.tar
+*.gz
+
+
+*.dll
+*.dat
+*.pyc
+*.swp
+*.tmp
+*.bak
+
+*.o
