@@ -4,7 +4,7 @@
 // Constantes de la fenêtre
 #define WINDOW_WIDTH 800
 #define WINDOW_HEIGHT 600
-#define WINDOW_TITLE "Binding of Isaac"
+#define WINDOW_TITLE "The Binding of Bilo"
 
 // Constantes du jeu
 #define MAX_PROJECTILES 50

@@ -6,7 +6,7 @@ CFLAGS = -Wall -Wextra -Isrc
 LDFLAGS = -lmingw32 -lSDL2main -lSDL2 -lSDL2_image
 
 # Nom de l'exécutable
-TARGET = game.exe
+TARGET = The_Binding_of_Bilo.exe
 
 # Fichiers source
 SOURCES = src/core/main.c \
