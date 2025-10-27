@@ -79,7 +79,8 @@ gcc -o game.exe src/core/main.c src/player/player.c src/player/projectile.c src/
 Projet C/
 ├── src/                    # Code source organisé par modules
 │   ├── core/               # Fichiers principaux
-│   │   └── main.c          # Boucle de jeu principale
+│   │   ├── main.c          # Boucle de jeu principale
+│   │   └── menu.h/.c       # Système de menu
 │   ├── player/             # Module joueur
 │   │   ├── player.h/.c     # Gestion du joueur
 │   │   └── projectile.h/.c # Gestion des projectiles
@@ -91,7 +92,8 @@ Projet C/
 ├── assets/                 # Ressources graphiques
 │   └── images/
 │       ├── personnages/
-│       └── projectiles/
+│       ├── projectiles/
+│       └── menu/           # Sprites des boutons
 ├── compile.bat             # Script de compilation
 ├── Makefile                # Makefile
 └── game.exe                # Exécutable
