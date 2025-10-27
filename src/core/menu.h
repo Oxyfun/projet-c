@@ -36,8 +36,6 @@ typedef struct {
 
 // Structure du menu
 typedef struct {
-    MenuState current_state;
-    
     // Boutons du menu principal
     Button btn_play;
     Button btn_level_editor;

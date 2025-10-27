@@ -2,13 +2,9 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include "../utils/sdl_common.h"
+#include "../utils/constants.h"
 #include "../player/player.h"
 #include "menu.h"
-
-// Constantes pour la fenêtre du jeu
-#define WINDOW_WIDTH 800
-#define WINDOW_HEIGHT 600
-#define WINDOW_TITLE "Binding of Isaac"
 
 int main(int argc, char* argv[]) {
     // Initialisation de SDL + vérif
@@ -59,7 +55,6 @@ int main(int argc, char* argv[]) {
     bool player_initialized = false;
 
     // Initialisation des projectiles
-    enum { MAX_PROJECTILES = 50 };
     Projectile projectiles[MAX_PROJECTILES];
 
     // Initialiser tous les projectiles comme inactifs
@@ -126,8 +121,7 @@ int main(int argc, char* argv[]) {
             // ajouter ici l'éditeur de niveau dans le futur
         }
 
-        SDL_RenderClear(renderer);
-        
+
         if (g_menu_state == MENU_STATE_MAIN_MENU) {
             // Afficher le menu
             menu_render(renderer, &menu);
