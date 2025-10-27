@@ -19,16 +19,13 @@ typedef struct {
     
     // Stats du joueur
     float speed; // Vitesse de déplacement
-    float max_x, max_y; // Limites de l'écran (pour éviter les valeurs en dur)
     
     // Stats de tir
     float projectile_damage; // Dégâts des projectiles
     float fire_rate; // Cadence de tir (projectiles par seconde)
-    float last_shot_time; // Temps du dernier tir (pour la cadence)
+    float fire_interval; // Intervalle entre les tirs
+    float last_shot_time; // Temps du dernier tir
     float projectile_speed; // Vitesse des projectiles
-    
-    // État
-    bool alive;
     
     // Textures pour les différentes directions
     SDL_Texture* texture_up;
@@ -43,12 +40,12 @@ typedef struct {
 
 // Fonctions essentielles
 void player_init(Player* p, SDL_Renderer* renderer);
-void player_update(Player* p, const Uint8* keys, float dt, Projectile* projectiles, int max_projectiles, SDL_Renderer* renderer);
+void player_update(Player* p, const Uint8* keys, float dt, float current_time, Projectile* projectiles, int max_projectiles, SDL_Texture* projectile_texture);
 void player_render(SDL_Renderer* r, Player* p);
 void player_cleanup(Player* p);
 
 // Fonctions de tir
-void player_shoot(Player* p, Projectile* projectile, int direction, SDL_Renderer* renderer);
+void player_shoot(Player* p, Projectile* projectile, int direction, SDL_Texture* projectile_texture, float current_time);
 bool player_can_shoot(Player* p, float current_time);
 
 #endif

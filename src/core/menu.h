@@ -4,7 +4,7 @@
 #include "../utils/sdl_common.h"
 #include <stdbool.h>
 
-// États du menu/jeu
+// États du menu
 typedef enum {
     MENU_STATE_MAIN_MENU,
     MENU_STATE_GAME,
@@ -43,11 +43,6 @@ typedef struct {
     
     // Texture de fond du menu
     SDL_Texture* background;
-    
-    // Position de la souris
-    int mouse_x;
-    int mouse_y;
-    bool mouse_clicked;
 } Menu;
 
 // Fonctions du menu
@@ -58,7 +53,8 @@ void menu_cleanup(Menu* menu);
 
 // Fonctions utilitaires pour les boutons
 void button_init(Button* btn, int x, int y, int w, int h, SDL_Renderer* renderer, const char* path_normal, const char* path_hover, const char* path_pressed, void (*onClick)(void));
-void button_update(Button* btn, int mouse_x, int mouse_y, bool mouse_clicked);
+void button_update(Button* btn, int mouse_x, int mouse_y, bool mouse_pressed);
+void button_trigger(Button* btn);
 void button_render(SDL_Renderer* renderer, Button* btn);
 void button_cleanup(Button* btn);
 bool button_is_hovered(Button* btn, int mouse_x, int mouse_y);

@@ -3,6 +3,7 @@
 #include <stdbool.h>
 #include "../utils/sdl_common.h"
 #include "../utils/constants.h"
+#include "../utils/assets.h"
 #include "../player/player.h"
 #include "menu.h"
 
@@ -13,8 +14,8 @@ int main(int argc, char* argv[]) {
         exit(EXIT_FAILURE);
     }
 
-    // Initialisation de SDL_image
-    int imgFlags = IMG_INIT_PNG | IMG_INIT_JPG;
+    // Initialisation de SDL_image, que pour PNG pour l'instant
+    int imgFlags = IMG_INIT_PNG;
     if (!(IMG_Init(imgFlags) & imgFlags)) {
         printf("Erreur lors de l'initialisation de SDL_image: %s\n", IMG_GetError());
         SDL_Quit();
@@ -33,15 +34,17 @@ int main(int argc, char* argv[]) {
 
     if (window == NULL) {
         printf("Erreur lors de la création de la fenêtre: %s\n", SDL_GetError());
+        IMG_Quit();
         SDL_Quit();
         exit(EXIT_FAILURE);
     }
 
-    // Création du renderer avec VSync pour limiter automatiquement les FPS (car ça lag quand on ferme le jeu)
+    // Création du renderer avec VSync pour limiter les FPS (car ça laggait quand on fermait le jeu)
     SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
     if (renderer == NULL) {
         printf("Erreur lors de la création du renderer: %s\n", SDL_GetError());
         SDL_DestroyWindow(window);
+        IMG_Quit();
         SDL_Quit();
         exit(EXIT_FAILURE);
     }
@@ -57,10 +60,15 @@ int main(int argc, char* argv[]) {
     // Initialisation des projectiles
     Projectile projectiles[MAX_PROJECTILES];
 
+    // Charger la texture des projectiles
+    SDL_Texture* projectile_texture = load_texture(renderer, "assets/images/projectiles/proj.png");
+    if (projectile_texture == NULL) {
+        printf("Impossible de charger proj.png\n");
+    }
+
     // Initialiser tous les projectiles comme inactifs
     for (int i = 0; i < MAX_PROJECTILES; i++) {
         projectiles[i].active = false;
-        projectiles[i].texture = NULL;
     }
 
     // Variables pour le delta time
@@ -71,10 +79,11 @@ int main(int argc, char* argv[]) {
     SDL_Event event;
 
     while (running) {
-        // Calcul du delta time, si ya pas ça la vitesse du joueur sera proportionnelle aux FPS
-        Uint32 current_time = SDL_GetTicks();
-        float delta_time = (current_time - last_time) / 1000.0f;
-        last_time = current_time;
+        // Calcul du delta time, si ya pas ça la vitesse du joueur sera proportionnelle aux FPS ( c'est la diff entre 2 frames )
+        Uint32 current_time_ms = SDL_GetTicks();
+        float delta_time = (current_time_ms - last_time) / MS_TO_SECONDS;
+        float current_time = current_time_ms / MS_TO_SECONDS;
+        last_time = current_time_ms;
 
         // Gestion des événements
         while (SDL_PollEvent(&event)) {
@@ -106,10 +115,14 @@ int main(int argc, char* argv[]) {
             printf("ZQSD pour bouger | Flèches pour tirer\n");
         }
         
-        if (g_menu_state == MENU_STATE_GAME && player_initialized) {
+        // Mise à jour et rendu selon l'état
+        if (g_menu_state == MENU_STATE_MAIN_MENU) {
+            // Afficher le menu
+            menu_render(renderer, &menu);
+        } else if (g_menu_state == MENU_STATE_GAME && player_initialized) {
             // Mise à jour du jeu
             const Uint8* keys = SDL_GetKeyboardState(NULL); // quelle touche pressé
-            player_update(&player, keys, delta_time, projectiles, MAX_PROJECTILES, renderer);
+            player_update(&player, keys, delta_time, current_time, projectiles, MAX_PROJECTILES, projectile_texture);
             
             // Mise à jour des projectiles
             for (int i = 0; i < MAX_PROJECTILES; i++) {
@@ -117,15 +130,7 @@ int main(int argc, char* argv[]) {
                     projectile_update(&projectiles[i], delta_time);
                 }
             }
-        } else if (g_menu_state == MENU_STATE_LEVEL_EDITOR) {
-            // ajouter ici l'éditeur de niveau dans le futur
-        }
-
-
-        if (g_menu_state == MENU_STATE_MAIN_MENU) {
-            // Afficher le menu
-            menu_render(renderer, &menu);
-        } else if (g_menu_state == MENU_STATE_GAME && player_initialized) {
+            
             // Afficher le jeu
             SDL_SetRenderDrawColor(renderer, 50, 50, 50, 255);
             SDL_RenderClear(renderer);
@@ -159,9 +164,12 @@ int main(int argc, char* argv[]) {
 
     // Nettoyage des projectiles
     for (int i = 0; i < MAX_PROJECTILES; i++) {
-        if (projectiles[i].texture != NULL) {
-            projectile_cleanup(&projectiles[i]);
-        }
+        projectile_cleanup(&projectiles[i]);
+    }
+    
+    // Détruire la texture partagée des projectiles
+    if (projectile_texture != NULL) {
+        SDL_DestroyTexture(projectile_texture);
     }
 
     SDL_DestroyRenderer(renderer);
@@ -171,4 +179,3 @@ int main(int argc, char* argv[]) {
 
     exit(EXIT_SUCCESS);
 }
-

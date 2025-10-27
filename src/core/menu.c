@@ -40,14 +40,11 @@ bool button_is_hovered(Button* btn, int mouse_x, int mouse_y) {
 }
 
 // Mise à jour d'un bouton
-void button_update(Button* btn, int mouse_x, int mouse_y, bool mouse_clicked) {
+void button_update(Button* btn, int mouse_x, int mouse_y, bool mouse_pressed) {
     bool hovered = button_is_hovered(btn, mouse_x, mouse_y);
     
-    if (hovered && mouse_clicked) {
+    if (hovered && mouse_pressed) {
         btn->state = BUTTON_STATE_PRESSED;
-        if (btn->onClick) {
-            btn->onClick();
-        }
     } else if (hovered) {
         btn->state = BUTTON_STATE_HOVER;
     } else {
@@ -55,9 +52,16 @@ void button_update(Button* btn, int mouse_x, int mouse_y, bool mouse_clicked) {
     }
 }
 
+// Déclencher le callback du bouton (à appeler séparément lors d'un clic)
+void button_trigger(Button* btn) {
+    if (btn->onClick) {
+        btn->onClick();
+    }
+}
+
 // Rendu d'un bouton
 void button_render(SDL_Renderer* renderer, Button* btn) {
-    SDL_Rect rect = { btn->x, btn->y, btn->w, btn->h };
+    SDL_Rect rect = { btn->x, btn->y, btn->w, btn->h }; //hitbox du bouton
     
     // Choisir la texture en fonction de l'état
     SDL_Texture* current_texture = NULL;
@@ -105,6 +109,7 @@ void button_cleanup(Button* btn) {
         btn->texture_normal = NULL;
     }
     // Ne pas détruire hover/pressed s'ils pointent vers normal
+    // si on déruit deux fois la même ça crash
     if (btn->texture_hover && btn->texture_hover != btn->texture_normal) {
         SDL_DestroyTexture(btn->texture_hover);
     }
@@ -117,10 +122,6 @@ void button_cleanup(Button* btn) {
 
 // Initialisation du menu
 void menu_init(Menu* menu, SDL_Renderer* renderer) {
-    menu->mouse_x = 0;
-    menu->mouse_y = 0;
-    menu->mouse_clicked = false;
-    
     // le fond du menu
     menu->background = load_texture(renderer, "assets/images/menu/background.png");
 
@@ -153,21 +154,30 @@ void menu_update(Menu* menu, SDL_Event* event) {
         return;
     }
 
-    if (event->type == SDL_MOUSEMOTION) {
-        menu->mouse_x = event->motion.x;
-        menu->mouse_y = event->motion.y;
-        menu->mouse_clicked = false;
-    } else if (event->type == SDL_MOUSEBUTTONDOWN && event->button.button == SDL_BUTTON_LEFT) { //clique gauche
-        menu->mouse_x = event->button.x;
-        menu->mouse_y = event->button.y;
-        menu->mouse_clicked = true;
-    } else if (event->type == SDL_MOUSEBUTTONUP) {
-        menu->mouse_clicked = false;
+    int mouse_x, mouse_y;
+    
+    // Détecter le clic (pas en maintenu sinon ça lance pleins de fois le jeu)
+    if (event->type == SDL_MOUSEBUTTONDOWN && event->button.button == SDL_BUTTON_LEFT) {
+        mouse_x = event->button.x;
+        mouse_y = event->button.y;
+        
+        // Vérifier quel bouton est cliqué et déclencher son callback
+        if (button_is_hovered(&menu->btn_play, mouse_x, mouse_y)) {
+            button_trigger(&menu->btn_play);
+        } else if (button_is_hovered(&menu->btn_level_editor, mouse_x, mouse_y)) {
+            button_trigger(&menu->btn_level_editor);
+        } else if (button_is_hovered(&menu->btn_quit, mouse_x, mouse_y)) {
+            button_trigger(&menu->btn_quit);
+        }
     }
-
-    button_update(&menu->btn_play, menu->mouse_x, menu->mouse_y, menu->mouse_clicked);
-    button_update(&menu->btn_level_editor, menu->mouse_x, menu->mouse_y, menu->mouse_clicked);
-    button_update(&menu->btn_quit, menu->mouse_x, menu->mouse_y, menu->mouse_clicked);
+    
+    // Mise à jour de l'état visuel des boutons
+    Uint32 mouse_state = SDL_GetMouseState(&mouse_x, &mouse_y);
+    bool mouse_pressed = (mouse_state & SDL_BUTTON(SDL_BUTTON_LEFT)) != 0;
+    
+    button_update(&menu->btn_play, mouse_x, mouse_y, mouse_pressed);
+    button_update(&menu->btn_level_editor, mouse_x, mouse_y, mouse_pressed);
+    button_update(&menu->btn_quit, mouse_x, mouse_y, mouse_pressed);
 }
 
 void menu_render(SDL_Renderer* renderer, Menu* menu) {
@@ -184,7 +194,6 @@ void menu_render(SDL_Renderer* renderer, Menu* menu) {
     button_render(renderer, &menu->btn_play);
     button_render(renderer, &menu->btn_level_editor);
     button_render(renderer, &menu->btn_quit);
-
 }
 
 // Nettoyage du menu

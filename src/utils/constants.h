@@ -9,5 +9,7 @@
 // Constantes du jeu
 #define MAX_PROJECTILES 50
 
-#endif
+// Constantes de temps
+#define MS_TO_SECONDS 1000.0f
 
+#endif
