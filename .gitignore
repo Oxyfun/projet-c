@@ -1,54 +1,20 @@
-.vs/
-*.VC.db
-*.VC.opendb
-*.suo
-*.user
-*.userosscache
-*.sln.docstates
-
-[Bb]in/
-[Oo]bj/
-x64/
-x86/
-Debug/
-Release/
-ipch/
-
-
-*.log
-*.tlog
-*.lastbuildstate
-*.cache
-*.pdb
-*.ilk
+# Fichiers de compilation
+*.o
 *.exe
+*.a
+*.so
 *.dll
-*.lib
-*.exp
-*.idb
 
+# Dossiers de build
+build/
+dist/
 
-*.opensdf
-*.sdf
-*.db
-*.opendb
-*.ipdb
-*.iobj
-
-
-packages/
-*.nupkg
-
-
-*.zip
-*.7z
-*.tar
-*.gz
-
-
-*.dll
-*.dat
-*.pyc
-*.swp
+# Fichiers temporaires
 *.tmp
-*.bak
+*.log
+*.swp
+*~
+
+# Fichiers système
+.DS_Store
+Thumbs.db
