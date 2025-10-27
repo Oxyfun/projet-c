@@ -1,4 +1,4 @@
-# Binding of Isaac Clone
+# The Binding of Bilo
 
 Un jeu 2D en C inspiré de The Binding of Isaac, développé avec SDL2.
 
@@ -68,6 +68,7 @@ gcc -o game.exe src/core/main.c src/player/player.c src/player/projectile.c src/
 - ✅ Sprites selon la direction
 - ✅ Structure Player modulaire
 - ✅ Système de tir
+- ✅ Menu au lancement
 - ⏳ Gestion des collisions
 - ⏳ Ennemis et objets
 - ⏳ Salles et transitions
@@ -76,27 +77,32 @@ gcc -o game.exe src/core/main.c src/player/player.c src/player/projectile.c src/
 ## Structure du projet
 
 ```
-Projet C/
-├── src/                    # Code source organisé par modules
-│   ├── core/               # Fichiers principaux
-│   │   ├── main.c          # Boucle de jeu principale
-│   │   └── menu.h/.c       # Système de menu
-│   ├── player/             # Module joueur
-│   │   ├── player.h/.c     # Gestion du joueur
-│   │   └── projectile.h/.c # Gestion des projectiles
-│   ├── enemies/            # Module ennemis (à venir)
-│   ├── rooms/              # Module salles (à venir)
-│   └── utils/              # Utilitaires partagés
-│       ├── sdl_common.h    # Gestion multi-plateforme SDL
-│       └── assets.h/.c     # Chargement des textures
-├── assets/                 # Ressources graphiques
+projet-c/
+├── src/
+│   ├── core/                       # Fichiers principaux
+│   │   ├── main.c                  # Boucle de jeu
+│   │   ├── menu.h                  # Déclarations du menu
+│   │   └── menu.c                  # Implémentation du menu
+│   ├── player/
+│   │   ├── player.h                # Déclarations du joueur
+│   │   ├── player.c                # Implémentation du joueur
+│   │   ├── projectile.h            # Déclarations des projectiles
+│   │   └── projectile.c            # Implémentation des projectiles
+│   └── utils/                      # Utilitaires
+│       ├── sdl_common.h            # Gestion SDL
+│       ├── assets.h                # Déclarations des assets
+│       ├── assets.c                # Chargement des textures
+│       └── constants.h             # Constantes du jeu
+├── assets/
 │   └── images/
-│       ├── personnages/
-│       ├── projectiles/
-│       └── menu/           # Sprites des boutons
-├── compile.bat             # Script de compilation
-├── Makefile                # Makefile
-└── game.exe                # Exécutable
+│       ├── menu/                   # Images du menu
+│       ├── personnages/            # Sprites du joueur
+│       └── projectiles/            # Sprites des projectiles
+│           └── proj.png
+├── compile.bat                     # Script de compilation Windows
+├── Makefile                        # Makefile
+├── The_Binding_of_Bilo.exe         # Jeu
+└── README.md                       # Documentation du projet
 
 ```
 
