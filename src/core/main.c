@@ -1,9 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdbool.h> // pour les boolean
-#include <SDL.h> // !!! SDL2 pour windows à voir pour linux
-#include <SDL_image.h>
-#include "player.h" //  structure du joueur
+#include <stdbool.h>
+#include "../utils/sdl_common.h"
+#include "../player/player.h"
 
 // Constantes pour la fenêtre du jeu
 #define WINDOW_WIDTH 800
@@ -41,8 +40,8 @@ int main(int argc, char* argv[]) {
         exit(EXIT_FAILURE);
     }
 
-    // Création du renderer, c'est ce qui y aura dans la fenêtre
-    SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+    // Création du renderer avec VSync pour limiter automatiquement les FPS (car ça lag quand on ferme le jeu)
+    SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
     if (renderer == NULL) {
         printf("Erreur lors de la création du renderer: %s\n", SDL_GetError());
         SDL_DestroyWindow(window);
@@ -61,6 +60,7 @@ int main(int argc, char* argv[]) {
     // Initialiser tous les projectiles comme inactifs
     for (int i = 0; i < MAX_PROJECTILES; i++) {
         projectiles[i].active = false;
+        projectiles[i].texture = NULL;
     }
 
     // Variables pour le delta time
@@ -70,7 +70,6 @@ int main(int argc, char* argv[]) {
     bool running = true;
     SDL_Event event;
 
-    printf("Fenetre SDL2 cree avec succes !\n");
     printf("Utilisez ZQSD pour bouger.\n");
     printf("Utilisez les fleches directionnelles pour tirer.\n");
     printf("Appuyez sur ESC ou fermez la fenetre pour quitter.\n");
@@ -121,14 +120,19 @@ int main(int argc, char* argv[]) {
         }
 
         SDL_RenderPresent(renderer); // Affiche le rendu
+        
+        // si VSync ne marche pas c'est une petite backup
+        SDL_Delay(1);
     }
 
     // Nettoyage
     player_cleanup(&player);
 
-    // Nettoyage des projectiles
+    // Nettoyage des projectiles (seulement ceux qui ont une texture)
     for (int i = 0; i < MAX_PROJECTILES; i++) {
-        projectile_cleanup(&projectiles[i]);
+        if (projectiles[i].texture != NULL) {
+            projectile_cleanup(&projectiles[i]);
+        }
     }
 
     SDL_DestroyRenderer(renderer);
@@ -139,3 +143,4 @@ int main(int argc, char* argv[]) {
     printf("Programme terminé.\n");
     exit(EXIT_SUCCESS);
 }
+

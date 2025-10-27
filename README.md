@@ -18,14 +18,24 @@ pacman -S mingw-w64-x86_64-SDL2 mingw-w64-x86_64-SDL2_image
 
 ## Compilation et exécution
 
-### Windows (MSYS2)
+### Méthode recommandée (Script batch)
 
 ```bash
-# Compiler
-gcc -o game main.c player.c -lmingw32 -lSDL2main -lSDL2 -lSDL2_image -lm
+.\compile.bat
+```
 
-# Exécuter
-./game.exe
+### Avec Make
+
+```bash
+make # Compiler
+make run # Compiler et exécuter
+make clean # Nettoyer
+```
+
+### Compilation manuelle
+
+```bash
+gcc -o game.exe src/core/main.c src/player/player.c src/player/projectile.c src/utils/assets.c -Isrc -lmingw32 -lSDL2main -lSDL2 -lSDL2_image
 ```
 
 ## Contrôles
@@ -67,18 +77,30 @@ gcc -o game main.c player.c -lmingw32 -lSDL2main -lSDL2 -lSDL2_image -lm
 
 ```
 Projet C/
-├── main.c                    # Code principal et boucle de jeu
-├── player.h                  # Déclarations (Player, Projectile)
-├── player.c                  # Implémentation du joueur et projectiles
-├── game.exe                  # Exécutable compilé
-├── assets/                   # Ressources graphiques
+├── src/                    # Code source organisé par modules
+│   ├── core/               # Fichiers principaux
+│   │   └── main.c          # Boucle de jeu principale
+│   ├── player/             # Module joueur
+│   │   ├── player.h/.c     # Gestion du joueur
+│   │   └── projectile.h/.c # Gestion des projectiles
+│   ├── enemies/            # Module ennemis (à venir)
+│   ├── rooms/              # Module salles (à venir)
+│   └── utils/              # Utilitaires partagés
+│       ├── sdl_common.h    # Gestion multi-plateforme SDL
+│       └── assets.h/.c     # Chargement des textures
+├── assets/                 # Ressources graphiques
 │   └── images/
 │       ├── personnages/
-│       │   ├── personnage_haut.png
-│       │   ├── personnage_bas.png
-│       │   ├── personnage_gauche.png
-│       │   └── personnage_droite.png
 │       └── projectiles/
-│           └── proj.png
-└── README.md
+├── compile.bat             # Script de compilation
+├── Makefile                # Makefile
+└── game.exe                # Exécutable
+
 ```
+
+## SDL2
+
+Le projet gère automatiquement les différences d'includes SDL entre les systèmes :
+
+- **Windows + MinGW** : `#include <SDL2/SDL.h>` (automatique)
+- **Linux/Mac** : `#include <SDL.h>` (automatique)

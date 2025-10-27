@@ -52,3 +52,5 @@ packages/
 *.swp
 *.tmp
 *.bak
+
+*.o

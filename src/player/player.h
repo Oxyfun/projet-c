@@ -1,10 +1,9 @@
-#ifndef PLAYER_H // Au cas ou on inclut plusieurs fois le fichier
+#ifndef PLAYER_H
 #define PLAYER_H
 
-#include <SDL.h>
+#include "../utils/sdl_common.h"
 #include <stdbool.h>
-#include <SDL_image.h>
-#include <math.h>  // Pour la fonction sqrt
+#include <math.h>
 #include "projectile.h"
 
 // Structure joueur
@@ -19,24 +18,24 @@ typedef struct {
     float w, h;
     
     // Stats du joueur
-    float speed;           // Vitesse de déplacement
-    float max_x, max_y;    // Limites de l'écran (pour éviter les valeurs en dur)
+    float speed; // Vitesse de déplacement
+    float max_x, max_y; // Limites de l'écran (pour éviter les valeurs en dur)
     
     // Stats de tir
-    float projectile_damage;    // Dégâts des projectiles
-    float fire_rate;            // Cadence de tir (projectiles par seconde)
-    float last_shot_time;       // Temps du dernier tir (pour la cadence)
-    float projectile_speed;     // Vitesse des projectiles
+    float projectile_damage; // Dégâts des projectiles
+    float fire_rate; // Cadence de tir (projectiles par seconde)
+    float last_shot_time; // Temps du dernier tir (pour la cadence)
+    float projectile_speed; // Vitesse des projectiles
     
     // État
     bool alive;
     
     // Textures pour les différentes directions
-    SDL_Texture* texture_up;    // personnage_haut.png
-    SDL_Texture* texture_down; // personnage_bas.png
-    SDL_Texture* texture_left; // personnage_gauche.png
-    SDL_Texture* texture_right; // personnage_droite.png
-    SDL_Texture* current_texture; // Texture actuellement affichée
+    SDL_Texture* texture_up;
+    SDL_Texture* texture_down;
+    SDL_Texture* texture_left;
+    SDL_Texture* texture_right;
+    SDL_Texture* current_texture;
     
     // Direction actuelle
     int direction; // 0=bas, 1=haut, 2=gauche, 3=droite
@@ -53,3 +52,4 @@ void player_shoot(Player* p, Projectile* projectile, int direction, SDL_Renderer
 bool player_can_shoot(Player* p, float current_time);
 
 #endif
+

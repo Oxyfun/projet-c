@@ -1,46 +1,28 @@
 #include "player.h"
-
-
-// Fonction pour charger une texture
-SDL_Texture* load_texture(SDL_Renderer* renderer, const char* path) {
-    SDL_Surface* surface = IMG_Load(path);
-    if (surface == NULL) {
-        printf("Erreur chargement image %s: %s\n", path, IMG_GetError());
-        return NULL;
-    }
-    
-    SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface); // Conversion en texture pour l'opti
-    SDL_FreeSurface(surface);
-    
-    if (texture == NULL) {
-        printf("Erreur création texture %s: %s\n", path, SDL_GetError());
-        return NULL;
-    }
-    
-    return texture;
-}
+#include "../utils/assets.h"
+#include <stdio.h>
 
 // Initialisation du joueur
 void player_init(Player* p, SDL_Renderer* renderer) {
-    p->x = 400.0f;  // Centre de l'écran
+    p->x = 400.0f; // Centre de l'écran
     p->y = 300.0f;
     p->vx = 0.0f;
     p->vy = 0.0f;
     p->w = 48.0f;
     p->h = 48.0f;
     p->alive = true;
-    p->direction = 0; // Commence vers le bas
+    p->direction = 0; // sprite vers le bas
     
     // Stats du joueur
-    p->speed = 200.0f;        // Vitesse de déplacement
-    p->max_x = 800.0f;        // Limite droite de l'écran
-    p->max_y = 600.0f;        // Limite basse de l'écran
+    p->speed = 200.0f; // Vitesse de déplacement
+    p->max_x = 800.0f; // Limite droite de l'écran
+    p->max_y = 600.0f; // Limite basse de l'écran
     
     // Stats de tir
-    p->projectile_damage = 10.0f;     // Dégâts des projectiles
-    p->fire_rate = 2.0f;              // 2 projectiles par seconde
-    p->last_shot_time = 0.0f;         // Pas encore tiré
-    p->projectile_speed = 300.0f;      // Vitesse des projectiles
+    p->projectile_damage = 10.0f; // Dégâts des projectiles
+    p->fire_rate = 2.0f; // 2 projectiles par seconde
+    p->last_shot_time = 0.0f;
+    p->projectile_speed = 300.0f; // Vitesse des projectiles
     
     // Chargement des textures
     p->texture_up = load_texture(renderer, "assets/images/personnages/personnage_haut.png");
@@ -60,7 +42,7 @@ void player_update(Player* p, const Uint8* keys, float dt, Projectile* projectil
     float move_x = 0.0f;
     float move_y = 0.0f;
     
-    // Gestion des touches et direction (SEULEMENT ZQSD pour le mouvement)
+    // Gestion des touches
     if (keys[SDL_SCANCODE_W]) {
         move_y = -1.0f;  // Vers le haut
     }
@@ -110,7 +92,7 @@ void player_update(Player* p, const Uint8* keys, float dt, Projectile* projectil
     p->x += p->vx * dt; // dt est le delta time
     p->y += p->vy * dt;
     
-    // Limites écran (utilisant les propriétés de la structure)
+    // Limites écran
     if (p->x < 0) p->x = 0;
     if (p->x + p->w > p->max_x) p->x = p->max_x - p->w;
     if (p->y < 0) p->y = 0;
@@ -131,17 +113,13 @@ void player_update(Player* p, const Uint8* keys, float dt, Projectile* projectil
     // Tir avec les flèches directionnelles
     if (free_projectile != NULL && player_can_shoot(p, current_time)) {
         if (keys[SDL_SCANCODE_DOWN]) {
-            player_shoot(p, free_projectile, 0, renderer);  // Bas
-            p->current_texture = p->texture_down;
+            player_shoot(p, free_projectile, 0, renderer); // Bas
         } else if (keys[SDL_SCANCODE_UP]) {
-            player_shoot(p, free_projectile, 1, renderer);  // Haut
-            p->current_texture = p->texture_up;
+            player_shoot(p, free_projectile, 1, renderer); // Haut
         } else if (keys[SDL_SCANCODE_LEFT]) {
-            player_shoot(p, free_projectile, 2, renderer);  // Gauche
-            p->current_texture = p->texture_left;
+            player_shoot(p, free_projectile, 2, renderer); // Gauche
         } else if (keys[SDL_SCANCODE_RIGHT]) {
-            player_shoot(p, free_projectile, 3, renderer);  // Droite
-            p->current_texture = p->texture_right;
+            player_shoot(p, free_projectile, 3, renderer); // Droite
         }
     }
 }
@@ -191,7 +169,7 @@ void player_cleanup(Player* p) {
 // Fonction pour vérifier si le joueur peut tirer
 bool player_can_shoot(Player* p, float current_time) {
     float time_since_last_shot = current_time - p->last_shot_time;
-    float fire_interval = 1.0f / p->fire_rate;  // Intervalle entre les tirs
+    float fire_interval = 1.0f / p->fire_rate; // Intervalle entre les tirs
     
     return time_since_last_shot >= fire_interval;
 }
