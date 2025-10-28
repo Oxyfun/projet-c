@@ -1,26 +1,21 @@
 #include "projectile.h"
-
-SDL_Texture* load_texture(SDL_Renderer* renderer, const char* path);
+#include "../utils/constants.h"
+#include <stdio.h>
 
 // Initialisation d'un projectile
-void projectile_init(Projectile* proj, float x, float y, int direction, float speed, float damage, SDL_Renderer* renderer) {
+void projectile_init(Projectile* proj, float x, float y, int direction, float speed, float damage, SDL_Texture* shared_texture) {
     proj->x = x;
     proj->y = y;
-    proj->speed = speed;
     proj->damage = damage;
-    proj->direction = direction;
     proj->active = true;
     proj->lifetime = 0.0f;
-    proj->max_lifetime = 3.0f;  // 3 secondes de vie
-    proj->size = 20.0f;         // Taille d'affichage du projectile (3x plus grand)
+    proj->max_lifetime = 3.0f;
+    proj->size = 20.0f;
     proj->angle = 0.0f;
     proj->angle_speed = 200.0f;
 
-    // Charger la texture du projectile
-    proj->texture = load_texture(renderer, "assets/images/projectiles/proj.png");
-    if (proj->texture == NULL) {
-        printf("ATTENTION: Impossible de charger proj.png, utilisation du rendu par défaut\n");
-    }
+    // Utiliser la texture partagÃ©e (chargÃ©e une seule fois dans main.c)
+    proj->texture = shared_texture;
 
     // Calculer la direction de la vitesse
     switch (direction) {
@@ -43,24 +38,22 @@ void projectile_init(Projectile* proj, float x, float y, int direction, float sp
     }
 }
 
-// Mise à jour d'un projectile
+// Mise Ã  jour d'un projectile
 void projectile_update(Projectile* proj, float dt) {
-    if (!proj->active) return;
-
-    // Mise à jour de la position
+    // Mise Ã  jour de la position
     proj->x += proj->vx * dt;
     proj->y += proj->vy * dt;
 
-    // Mise à jour de la durée de vie
+    // Mise Ã  jour de la durÃ©e de vie
     proj->lifetime += dt;
 
-    // Vérifier si le projectile est mort
+    // VÃ©rifier si le projectile est mort
     if (proj->lifetime >= proj->max_lifetime) {
         proj->active = false;
     }
 
-    // Vérifier les limites de l'écran (désactiver si sort de l'écran)
-    if (proj->x < 0 || proj->x > 800 || proj->y < 0 || proj->y > 600) {
+    // VÃ©rifier les limites de l'Ã©cran (dÃ©sactiver si sort de l'Ã©cran)
+    if (proj->x < 0 || proj->x > WINDOW_WIDTH || proj->y < 0 || proj->y > WINDOW_HEIGHT) {
         proj->active = false;
     }
 
@@ -70,11 +63,9 @@ void projectile_update(Projectile* proj, float dt) {
 
 // Rendu d'un projectile
 void projectile_render(SDL_Renderer* r, Projectile* proj) {
-    if (!proj->active) return;
-
     // Rectangle du projectile
     SDL_Rect rect = {
-        (int)(proj->x - proj->size / 2),  // Centrer le projectile
+        (int)(proj->x - proj->size / 2), // Centrer le projectile
         (int)(proj->y - proj->size / 2),
         (int)proj->size,
         (int)proj->size
@@ -88,16 +79,17 @@ void projectile_render(SDL_Renderer* r, Projectile* proj) {
         SDL_RenderCopyEx(r, proj->texture, NULL, &rect, proj->angle, &center, SDL_FLIP_NONE);
     }
     else {
-        // Fallback : carré jaune si pas de texture
-        SDL_SetRenderDrawColor(r, 255, 255, 0, 255);  // Jaune
+        // Fallback : carrÃ© jaune si pas de texture
+        SDL_SetRenderDrawColor(r, 255, 255, 0, 255);
         SDL_RenderFillRect(r, &rect);
     }
 }
 
 // Nettoyage d'un projectile
 void projectile_cleanup(Projectile* proj) {
-    if (proj->texture != NULL) {
-        SDL_DestroyTexture(proj->texture);
-        proj->texture = NULL;
-    }
+    // Ne pas dÃ©truire la texture car elle est partagÃ©e entre tous les projectiles
+    // Elle sera dÃ©truite une seule fois dans main.c
+    proj->texture = NULL;
+    proj->active = false;
 }
+

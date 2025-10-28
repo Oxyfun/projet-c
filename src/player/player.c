@@ -1,46 +1,27 @@
 #include "player.h"
-
-
-// Fonction pour charger une texture
-SDL_Texture* load_texture(SDL_Renderer* renderer, const char* path) {
-    SDL_Surface* surface = IMG_Load(path);
-    if (surface == NULL) {
-        printf("Erreur chargement image %s: %s\n", path, IMG_GetError());
-        return NULL;
-    }
-    
-    SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface); // Conversion en texture pour l'opti
-    SDL_FreeSurface(surface);
-    
-    if (texture == NULL) {
-        printf("Erreur création texture %s: %s\n", path, SDL_GetError());
-        return NULL;
-    }
-    
-    return texture;
-}
+#include "../utils/assets.h"
+#include "../utils/constants.h"
+#include <stdio.h>
 
 // Initialisation du joueur
 void player_init(Player* p, SDL_Renderer* renderer) {
-    p->x = 400.0f;  // Centre de l'écran
-    p->y = 300.0f;
-    p->vx = 0.0f;
-    p->vy = 0.0f;
     p->w = 48.0f;
     p->h = 48.0f;
-    p->alive = true;
-    p->direction = 0; // Commence vers le bas
+    p->x = (float)WINDOW_WIDTH / 2.0f - p->w / 2.0f;
+    p->y = (float)WINDOW_HEIGHT / 2.0f - p->h / 2.0f;
+    p->vx = 0.0f;
+    p->vy = 0.0f;
+    p->direction = 0;
     
     // Stats du joueur
-    p->speed = 200.0f;        // Vitesse de déplacement
-    p->max_x = 800.0f;        // Limite droite de l'écran
-    p->max_y = 600.0f;        // Limite basse de l'écran
+    p->speed = 200.0f; // Vitesse de déplacement
     
     // Stats de tir
-    p->projectile_damage = 10.0f;     // Dégâts des projectiles
-    p->fire_rate = 2.0f;              // 2 projectiles par seconde
-    p->last_shot_time = 0.0f;         // Pas encore tiré
-    p->projectile_speed = 300.0f;      // Vitesse des projectiles
+    p->projectile_damage = 10.0f; // Dégâts des projectiles
+    p->fire_rate = 2.0f; // 2 projectiles par seconde
+    p->fire_interval = 1.0f / p->fire_rate;
+    p->last_shot_time = 0.0f;
+    p->projectile_speed = 300.0f; // Vitesse des projectiles
     
     // Chargement des textures
     p->texture_up = load_texture(renderer, "assets/images/personnages/personnage_haut.png");
@@ -53,14 +34,12 @@ void player_init(Player* p, SDL_Renderer* renderer) {
 }
 
 // Mise à jour du joueur
-void player_update(Player* p, const Uint8* keys, float dt, Projectile* projectiles, int max_projectiles, SDL_Renderer* renderer) {
-    if (!p->alive) return;
-    
+void player_update(Player* p, const Uint8* keys, float dt, float current_time, Projectile* projectiles, int max_projectiles, SDL_Texture* projectile_texture) {
     // Variables pour les directions
     float move_x = 0.0f;
     float move_y = 0.0f;
     
-    // Gestion des touches et direction (SEULEMENT ZQSD pour le mouvement)
+    // Gestion des touches
     if (keys[SDL_SCANCODE_W]) {
         move_y = -1.0f;  // Vers le haut
     }
@@ -79,7 +58,6 @@ void player_update(Player* p, const Uint8* keys, float dt, Projectile* projectil
         // Calcul de la longueur du vecteur
         float magnitude = sqrt(move_x * move_x + move_y * move_y);
         
-        // diviser par la magnitude pour avoir un vecteur unitaire
         move_x = move_x / magnitude;
         move_y = move_y / magnitude;
         
@@ -110,47 +88,39 @@ void player_update(Player* p, const Uint8* keys, float dt, Projectile* projectil
     p->x += p->vx * dt; // dt est le delta time
     p->y += p->vy * dt;
     
-    // Limites écran (utilisant les propriétés de la structure)
+    // Limites écran
     if (p->x < 0) p->x = 0;
-    if (p->x + p->w > p->max_x) p->x = p->max_x - p->w;
+    if (p->x + p->w > WINDOW_WIDTH) p->x = WINDOW_WIDTH - p->w;
     if (p->y < 0) p->y = 0;
-    if (p->y + p->h > p->max_y) p->y = p->max_y - p->h;
+    if (p->y + p->h > WINDOW_HEIGHT) p->y = WINDOW_HEIGHT - p->h;
     
     // Gestion du tir avec les flèches directionnelles
-    float current_time = SDL_GetTicks() / 1000.0f;
-    
-    // Chercher un projectile inactif pour tirer
-    Projectile* free_projectile = NULL;
-    for (int i = 0; i < max_projectiles; i++) {
-        if (!projectiles[i].active) {
-            free_projectile = &projectiles[i];
-            break;
-        }
+    int shoot_direction = -1;
+    if (keys[SDL_SCANCODE_DOWN]) {
+        shoot_direction = 0; // Bas
+    } else if (keys[SDL_SCANCODE_UP]) {
+        shoot_direction = 1; // Haut
+    } else if (keys[SDL_SCANCODE_LEFT]) {
+        shoot_direction = 2; // Gauche
+    } else if (keys[SDL_SCANCODE_RIGHT]) {
+        shoot_direction = 3; // Droite
     }
     
-    // Tir avec les flèches directionnelles
-    if (free_projectile != NULL && player_can_shoot(p, current_time)) {
-        if (keys[SDL_SCANCODE_DOWN]) {
-            player_shoot(p, free_projectile, 0, renderer);  // Bas
-            p->current_texture = p->texture_down;
-        } else if (keys[SDL_SCANCODE_UP]) {
-            player_shoot(p, free_projectile, 1, renderer);  // Haut
-            p->current_texture = p->texture_up;
-        } else if (keys[SDL_SCANCODE_LEFT]) {
-            player_shoot(p, free_projectile, 2, renderer);  // Gauche
-            p->current_texture = p->texture_left;
-        } else if (keys[SDL_SCANCODE_RIGHT]) {
-            player_shoot(p, free_projectile, 3, renderer);  // Droite
-            p->current_texture = p->texture_right;
+    // Si une touche de tir est pressée et qu'on peut tirer
+    if (shoot_direction != -1 && player_can_shoot(p, current_time)) {
+        // Chercher un projectile inactif
+        for (int i = 0; i < max_projectiles; i++) {
+            if (!projectiles[i].active) {
+                player_shoot(p, &projectiles[i], shoot_direction, projectile_texture, current_time);
+                break; // On tire un seul projectile
+            }
         }
     }
 }
 
 // Rendu du joueur
 void player_render(SDL_Renderer* r, Player* p) {
-    if (!p->alive) return;
-    
-    SDL_Rect rect = { // Taille du perso dans le fichier player.h
+    SDL_Rect rect = {
         (int)p->x,
         (int)p->y,
         (int)p->w,
@@ -191,21 +161,19 @@ void player_cleanup(Player* p) {
 // Fonction pour vérifier si le joueur peut tirer
 bool player_can_shoot(Player* p, float current_time) {
     float time_since_last_shot = current_time - p->last_shot_time;
-    float fire_interval = 1.0f / p->fire_rate;  // Intervalle entre les tirs
-    
-    return time_since_last_shot >= fire_interval;
+    return time_since_last_shot >= p->fire_interval;
 }
 
 // Fonction pour faire tirer le joueur
-void player_shoot(Player* p, Projectile* projectile, int direction, SDL_Renderer* renderer) {
+void player_shoot(Player* p, Projectile* projectile, int direction, SDL_Texture* projectile_texture, float current_time) {
     // Position de départ du projectile (centre du joueur)
     float start_x = p->x + p->w / 2.0f;
     float start_y = p->y + p->h / 2.0f;
     
-    // Initialiser le projectile
-    projectile_init(projectile, start_x, start_y, direction, p->projectile_speed, p->projectile_damage, renderer);
+    // Initialiser le projectile avec la texture partagée
+    projectile_init(projectile, start_x, start_y, direction, p->projectile_speed, p->projectile_damage, projectile_texture);
     
     // Mettre à jour le temps du dernier tir
-    p->last_shot_time = SDL_GetTicks() / 1000.0f;
+    p->last_shot_time = current_time;
 }
 
