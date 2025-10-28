@@ -98,12 +98,16 @@ void player_update(Player* p, const Uint8* keys, float dt, float current_time, P
     int shoot_direction = -1;
     if (keys[SDL_SCANCODE_DOWN]) {
         shoot_direction = 0; // Bas
+        p->current_texture = p->texture_down;
     } else if (keys[SDL_SCANCODE_UP]) {
         shoot_direction = 1; // Haut
+        p->current_texture = p->texture_up;
     } else if (keys[SDL_SCANCODE_LEFT]) {
         shoot_direction = 2; // Gauche
+        p->current_texture = p->texture_left;
     } else if (keys[SDL_SCANCODE_RIGHT]) {
         shoot_direction = 3; // Droite
+        p->current_texture = p->texture_right;
     }
     
     // Si une touche de tir est pressée et qu'on peut tirer
