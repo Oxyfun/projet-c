@@ -1,4 +1,4 @@
-#include "player.h"
+﻿#include "player.h"
 #include "../utils/assets.h"
 #include "../utils/constants.h"
 #include <stdio.h>
@@ -15,6 +15,7 @@ void player_init(Player* p, SDL_Renderer* renderer) {
     
     // Stats du joueur
     p->speed = 200.0f; // Vitesse de déplacement
+    p->current_health = 5;
     
     // Stats de tir
     p->projectile_damage = 10.0f; // Dégâts des projectiles

@@ -1,4 +1,4 @@
-#ifndef PLAYER_H
+﻿#ifndef PLAYER_H
 #define PLAYER_H
 
 #include "../utils/sdl_common.h"
@@ -19,6 +19,7 @@ typedef struct {
     
     // Stats du joueur
     float speed; // Vitesse de déplacement
+    int current_health;
     
     // Stats de tir
     float projectile_damage; // Dégâts des projectiles
