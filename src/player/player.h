@@ -5,6 +5,7 @@
 #include <stdbool.h>
 #include <math.h>
 #include "projectile.h"
+#include "../levels/room.h"
 
 // Structure joueur
 typedef struct {
@@ -40,7 +41,7 @@ typedef struct {
 
 // Fonctions essentielles
 void player_init(Player* p, SDL_Renderer* renderer);
-void player_update(Player* p, const Uint8* keys, float dt, float current_time, Projectile* projectiles, int max_projectiles, SDL_Texture* projectile_texture);
+void player_update(Player* p, const Uint8* keys, float dt, float current_time, Projectile* projectiles, int max_projectiles, SDL_Texture* projectile_texture, const Room* room, const SDL_Rect* room_rect);
 void player_render(SDL_Renderer* r, Player* p);
 void player_cleanup(Player* p);
 

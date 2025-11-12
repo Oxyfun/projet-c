@@ -11,6 +11,8 @@ TARGET = The_Binding_of_Bilo.exe
 # Fichiers source
 SOURCES = src/core/main.c \
           src/core/menu.c \
+          src/levels/level_editor.c \
+          src/levels/room.c \
           src/player/player.c \
           src/player/projectile.c \
           src/utils/assets.c

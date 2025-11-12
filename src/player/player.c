@@ -2,6 +2,65 @@
 #include "../utils/assets.h"
 #include "../utils/constants.h"
 #include <stdio.h>
+#include "../levels/room.h"
+
+static bool player_world_to_cell(const SDL_Rect* room_rect, float x, float y, int* out_row, int* out_col) {
+    if (room_rect == NULL) {
+        return false;
+    }
+
+    float local_x = x - (float)room_rect->x;
+    float local_y = y - (float)room_rect->y;
+
+    if (local_x < 0.0f || local_y < 0.0f) {
+        return false;
+    }
+
+    int col = (int)(local_x / ROOM_CELL_SIZE);
+    int row = (int)(local_y / ROOM_CELL_SIZE);
+
+    if (col < 0 || col >= ROOM_COLS || row < 0 || row >= ROOM_ROWS) {
+        return false;
+    }
+
+    if (out_col != NULL) {
+        *out_col = col;
+    }
+    if (out_row != NULL) {
+        *out_row = row;
+    }
+
+    return true;
+}
+
+static bool player_collides_with_room(Player* p, const Room* room, const SDL_Rect* room_rect, float test_x, float test_y) {
+    if (room == NULL || room_rect == NULL) {
+        return false;
+    }
+
+    float margin = 4.0f;
+    float sample_points[4][2] = {
+        { test_x + margin, test_y + margin },
+        { test_x + p->w - margin, test_y + margin },
+        { test_x + margin, test_y + p->h - margin },
+        { test_x + p->w - margin, test_y + p->h - margin }
+    };
+
+    for (int i = 0; i < 4; i++) {
+        int row = 0;
+        int col = 0;
+
+        if (!player_world_to_cell(room_rect, sample_points[i][0], sample_points[i][1], &row, &col)) {
+            return true;
+        }
+
+        if (room_tile_is_blocking(room, row, col)) {
+            return true;
+        }
+    }
+
+    return false;
+}
 
 // Initialisation du joueur
 void player_init(Player* p, SDL_Renderer* renderer) {
@@ -34,7 +93,7 @@ void player_init(Player* p, SDL_Renderer* renderer) {
 }
 
 // Mise à jour du joueur
-void player_update(Player* p, const Uint8* keys, float dt, float current_time, Projectile* projectiles, int max_projectiles, SDL_Texture* projectile_texture) {
+void player_update(Player* p, const Uint8* keys, float dt, float current_time, Projectile* projectiles, int max_projectiles, SDL_Texture* projectile_texture, const Room* room, const SDL_Rect* room_rect) {
     // Variables pour les directions
     float move_x = 0.0f;
     float move_y = 0.0f;
@@ -84,15 +143,44 @@ void player_update(Player* p, const Uint8* keys, float dt, float current_time, P
         p->vy = 0.0f;
     }
     
-    // Mise à jour position
-    p->x += p->vx * dt; // dt est le delta time
-    p->y += p->vy * dt;
+    // Mise à jour position + collisions sur la grille
+    if (room != NULL && room_rect != NULL) {
+        float new_x = p->x + p->vx * dt;
+        float new_y = p->y + p->vy * dt;
+
+        if (!player_collides_with_room(p, room, room_rect, new_x, p->y)) {
+            p->x = new_x;
+        } else {
+            p->vx = 0.0f;
+        }
+
+        if (!player_collides_with_room(p, room, room_rect, p->x, new_y)) {
+            p->y = new_y;
+        } else {
+            p->vy = 0.0f;
+        }
+    } else {
+        p->x += p->vx * dt;
+        p->y += p->vy * dt;
+    }
     
-    // Limites écran
-    if (p->x < 0) p->x = 0;
-    if (p->x + p->w > WINDOW_WIDTH) p->x = WINDOW_WIDTH - p->w;
-    if (p->y < 0) p->y = 0;
-    if (p->y + p->h > WINDOW_HEIGHT) p->y = WINDOW_HEIGHT - p->h;
+    // Limites écran si pas de grille
+    if (room_rect == NULL) {
+        if (p->x < 0) p->x = 0;
+        if (p->x + p->w > WINDOW_WIDTH) p->x = WINDOW_WIDTH - p->w;
+        if (p->y < 0) p->y = 0;
+        if (p->y + p->h > WINDOW_HEIGHT) p->y = WINDOW_HEIGHT - p->h;
+    } else {
+        float min_x = (float)room_rect->x;
+        float max_x = (float)(room_rect->x + room_rect->w) - p->w;
+        float min_y = (float)room_rect->y;
+        float max_y = (float)(room_rect->y + room_rect->h) - p->h;
+
+        if (p->x < min_x) p->x = min_x;
+        if (p->x > max_x) p->x = max_x;
+        if (p->y < min_y) p->y = min_y;
+        if (p->y > max_y) p->y = max_y;
+    }
     
     // Gestion du tir avec les flèches directionnelles
     int shoot_direction = -1;
