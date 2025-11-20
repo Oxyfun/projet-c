@@ -1,3 +1,4 @@
+﻿#define _CRT_SECURE_NO_WARNINGS
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
@@ -7,6 +8,7 @@
 #include "../player/player.h"
 #include "../levels/room.h"
 #include "../levels/level_editor.h"
+#include "../monsters/monster.h"
 #include "menu.h"
 #include <time.h>
 
@@ -91,11 +93,13 @@ static void render_room(SDL_Renderer* renderer, const Room* room, const SDL_Rect
             if (has_floor) {
                 if (texture_floor != NULL) {
                     SDL_RenderCopy(renderer, texture_floor, NULL, &cell);
-                } else {
+                }
+                else {
                     SDL_SetRenderDrawColor(renderer, 90, 90, 90, 255);
                     SDL_RenderFillRect(renderer, &cell);
                 }
-            } else if (!has_rock) {
+            }
+            else if (!has_rock) {
                 SDL_SetRenderDrawColor(renderer, 40, 40, 60, 255);
                 SDL_RenderFillRect(renderer, &cell);
             }
@@ -103,7 +107,8 @@ static void render_room(SDL_Renderer* renderer, const Room* room, const SDL_Rect
             if (has_rock) {
                 if (texture_rock != NULL) {
                     SDL_RenderCopy(renderer, texture_rock, NULL, &cell);
-                } else {
+                }
+                else {
                     SDL_SetRenderDrawColor(renderer, 100, 100, 100, 255);
                     SDL_RenderFillRect(renderer, &cell);
                 }
@@ -128,6 +133,9 @@ int main(int argc, char* argv[]) {
         exit(EXIT_FAILURE);
     }
 
+    //initialise sdl_ttf
+    TTF_Init();
+
     // Création de la fenêtre
     SDL_Window* window = SDL_CreateWindow(
         WINDOW_TITLE,
@@ -144,7 +152,6 @@ int main(int argc, char* argv[]) {
         SDL_Quit();
         exit(EXIT_FAILURE);
     }
-
     // Création du renderer avec VSync pour limiter les FPS (car ça laggait quand on fermait le jeu)
     SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
     if (renderer == NULL) {
@@ -158,28 +165,28 @@ int main(int argc, char* argv[]) {
     // Initialisation du menu
     Menu menu;
     menu_init(&menu, renderer);
-    
+
     LevelEditor level_editor;
     bool level_editor_initialized = false;
-    
+
     Room current_room;
     room_init(&current_room);
     SDL_Rect room_rect = create_room_rect();
     bool room_loaded = false;
-    
+
     // Initialisation du joueur (sera initialisé quand on lance le jeu via le menu)
     Player player;
     bool player_initialized = false;
 
-    // Initialisation des projectiles
-    Projectile projectiles[MAX_PROJECTILES];
+    TTF_Font* font = TTF_OpenFont("assets/fonts/Zombie.ttf", 24);
+    (void)font;
 
     // Charger la texture des projectiles
     SDL_Texture* projectile_texture = load_texture(renderer, "assets/images/projectiles/proj.png");
     if (projectile_texture == NULL) {
         printf("Impossible de charger proj.png\n");
     }
-    
+
     SDL_Texture* tile_floor_texture = load_texture(renderer, "assets/images/decor/Sprite-sol.png");
     if (tile_floor_texture == NULL) {
         printf("Impossible de charger Sprite-sol.png\n");
@@ -189,6 +196,9 @@ int main(int argc, char* argv[]) {
     if (tile_rock_texture == NULL) {
         printf("Impossible de charger Sprite-rock.png\n");
     }
+
+    // Initialisation des projectiles
+    Projectile projectiles[MAX_PROJECTILES];
 
     // Initialiser tous les projectiles comme inactifs
     for (int i = 0; i < MAX_PROJECTILES; i++) {
@@ -217,20 +227,22 @@ int main(int argc, char* argv[]) {
             if (event.type == SDL_QUIT) {
                 running = false;
             }
-            
+
             if (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_ESCAPE) {
                 if (g_menu_state == MENU_STATE_LEVEL_EDITOR) {
                     g_menu_state = MENU_STATE_MAIN_MENU;
-                } else {
+                }
+                else {
                     running = false;
                 }
                 continue;
             }
-            
+
             // Événements du menu
             if (g_menu_state == MENU_STATE_MAIN_MENU) {
                 menu_update(&menu, &event);
-            } else if (g_menu_state == MENU_STATE_LEVEL_EDITOR) {
+            }
+            else if (g_menu_state == MENU_STATE_LEVEL_EDITOR) {
                 if (!level_editor_initialized) {
                     level_editor_init(&level_editor, renderer);
                     level_editor_initialized = true;
@@ -238,17 +250,17 @@ int main(int argc, char* argv[]) {
                 level_editor_handle_event(&level_editor, &event);
             }
         }
-        
+
         if (g_menu_state != MENU_STATE_LEVEL_EDITOR && level_editor_initialized) {
             level_editor_cleanup(&level_editor);
             level_editor_initialized = false;
         }
-        
+
         // Vérifier si on doit quitter
         if (g_menu_state == MENU_STATE_QUIT) {
             running = false;
         }
-        
+
         // Initialiser le joueur si on lance le jeu
         if (g_menu_state == MENU_STATE_GAME && !player_initialized) {
             player_init(&player, renderer);
@@ -262,12 +274,13 @@ int main(int argc, char* argv[]) {
             room_loaded = true;
             ensure_spawn_is_clear(&player, &current_room, &room_rect);
         }
-        
+
         // Mise à jour et rendu selon l'état
         if (g_menu_state == MENU_STATE_MAIN_MENU) {
             // Afficher le menu
             menu_render(renderer, &menu);
-        } else if (g_menu_state == MENU_STATE_GAME && player_initialized) {
+        }
+        else if (g_menu_state == MENU_STATE_GAME && player_initialized) {
             if (!room_loaded) {
                 room_init(&current_room);
                 room_fill(&current_room, TILE_FLOOR);
@@ -277,28 +290,29 @@ int main(int argc, char* argv[]) {
             // Mise à jour du jeu
             const Uint8* keys = SDL_GetKeyboardState(NULL); // quelle touche pressé
             player_update(&player, keys, delta_time, current_time, projectiles, MAX_PROJECTILES, projectile_texture, &current_room, &room_rect);
-            
+
             // Mise à jour des projectiles
             for (int i = 0; i < MAX_PROJECTILES; i++) {
                 if (projectiles[i].active) {
                     projectile_update(&projectiles[i], delta_time);
                 }
             }
-            
+
             // Afficher le jeu
             SDL_SetRenderDrawColor(renderer, 50, 50, 50, 255);
             SDL_RenderClear(renderer);
 
             render_room(renderer, &current_room, &room_rect, tile_floor_texture, tile_rock_texture);
-            
+
             player_render(renderer, &player);
-            
+
             for (int i = 0; i < MAX_PROJECTILES; i++) {
                 if (projectiles[i].active) {
                     projectile_render(renderer, &projectiles[i]);
                 }
             }
-        } else if (g_menu_state == MENU_STATE_LEVEL_EDITOR) {
+        }
+        else if (g_menu_state == MENU_STATE_LEVEL_EDITOR) {
             if (!level_editor_initialized) {
                 level_editor_init(&level_editor, renderer);
                 level_editor_initialized = true;
@@ -308,7 +322,7 @@ int main(int argc, char* argv[]) {
         }
 
         SDL_RenderPresent(renderer);
-        
+
         // Backup si VSync ne marche pas
         SDL_Delay(1);
     }
@@ -319,7 +333,7 @@ int main(int argc, char* argv[]) {
 
     // Nettoyage
     menu_cleanup(&menu);
-    
+
     if (player_initialized) {
         player_cleanup(&player);
     }
@@ -327,11 +341,6 @@ int main(int argc, char* argv[]) {
     // Nettoyage des projectiles
     for (int i = 0; i < MAX_PROJECTILES; i++) {
         projectile_cleanup(&projectiles[i]);
-    }
-    
-    // Détruire la texture partagée des projectiles
-    if (projectile_texture != NULL) {
-        SDL_DestroyTexture(projectile_texture);
     }
 
     if (tile_floor_texture != NULL) {
@@ -342,10 +351,16 @@ int main(int argc, char* argv[]) {
         SDL_DestroyTexture(tile_rock_texture);
     }
 
+    // Détruire la texture partagée des projectiles
+    if (projectile_texture != NULL) {
+        SDL_DestroyTexture(projectile_texture);
+    }
+
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
     IMG_Quit();
     SDL_Quit();
+    TTF_Quit();
 
     exit(EXIT_SUCCESS);
 }
