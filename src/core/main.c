@@ -152,6 +152,7 @@ int main(int argc, char* argv[]) {
         SDL_Quit();
         exit(EXIT_FAILURE);
     }
+
     // Création du renderer avec VSync pour limiter les FPS (car ça laggait quand on fermait le jeu)
     SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
     if (renderer == NULL) {
@@ -178,8 +179,10 @@ int main(int argc, char* argv[]) {
     Player player;
     bool player_initialized = false;
 
+    //monster
+    Monster monster;
+
     TTF_Font* font = TTF_OpenFont("assets/fonts/Zombie.ttf", 24);
-    (void)font;
 
     // Charger la texture des projectiles
     SDL_Texture* projectile_texture = load_texture(renderer, "assets/images/projectiles/proj.png");
@@ -261,9 +264,10 @@ int main(int argc, char* argv[]) {
             running = false;
         }
 
-        // Initialiser le joueur si on lance le jeu
+        // Initialiser le joueur et le monstre si on lance le jeu
         if (g_menu_state == MENU_STATE_GAME && !player_initialized) {
             player_init(&player, renderer);
+            monster_init(&monster, renderer);
             player_initialized = true;
             printf("ZQSD pour bouger | Flèches pour tirer\n");
 
@@ -291,10 +295,38 @@ int main(int argc, char* argv[]) {
             const Uint8* keys = SDL_GetKeyboardState(NULL); // quelle touche pressé
             player_update(&player, keys, delta_time, current_time, projectiles, MAX_PROJECTILES, projectile_texture, &current_room, &room_rect);
 
+            //maj du monstre (suit le joueur)
+            monster_follow(&monster, player.x, player.y, delta_time);
+
             // Mise à jour des projectiles
             for (int i = 0; i < MAX_PROJECTILES; i++) {
                 if (projectiles[i].active) {
                     projectile_update(&projectiles[i], delta_time);
+
+                    SDL_Rect projRect = {
+                        (int)projectiles[i].x,
+                        (int)projectiles[i].y,
+                        (int)projectiles[i].size,
+                        (int)projectiles[i].size
+                    };
+
+                    SDL_Rect monsterRect = {
+                        (int)monster.x,
+                        (int)monster.y,
+                        (int)monster.w,
+                        (int)monster.h
+                    };
+
+                    //si le projectile touche le monstre, prend -1 hp
+                    if (projectiles[i].active && monster.alive) {
+                        if (SDL_HasIntersection(&projRect, &monsterRect)) {
+                            projectiles[i].active = false;
+                            monster.current_health -= 1;
+                            if (monster.current_health <= 0) {
+                                monster.alive = false;
+                            }
+                        }
+                    }
                 }
             }
 
@@ -305,6 +337,21 @@ int main(int argc, char* argv[]) {
             render_room(renderer, &current_room, &room_rect, tile_floor_texture, tile_rock_texture);
 
             player_render(renderer, &player);
+            monster_render(renderer, &monster);
+
+            // HUD HP joueur
+            char hp_text[32];
+            sprintf(hp_text, "HP: %d", player.current_health);
+
+            SDL_Color red = { 255, 0, 0, 255 };
+            SDL_Surface* surface = TTF_RenderText_Blended(font, hp_text, red);
+            SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface);
+
+            SDL_Rect hp_ui = { 700, 20, surface->w, surface->h };
+            SDL_RenderCopy(renderer, texture, NULL, &hp_ui);
+
+            SDL_FreeSurface(surface);
+            SDL_DestroyTexture(texture);
 
             for (int i = 0; i < MAX_PROJECTILES; i++) {
                 if (projectiles[i].active) {
