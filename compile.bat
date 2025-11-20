@@ -9,9 +9,10 @@ gcc -o The_Binding_of_Bilo ^
     src/levels/room.c ^
     src/player/player.c ^
     src/player/projectile.c ^
+    src/monsters/monster.c ^
     src/utils/assets.c ^
     -Isrc ^
-    -lmingw32 -lSDL2main -lSDL2 -lSDL2_image
+    -lmingw32 -lSDL2main -lSDL2 -lSDL2_image -lSDL2_ttf
 
 if %ERRORLEVEL% EQU 0 (
     echo Compilation reussie ! Executable: The_Binding_of_Bilo.exe
