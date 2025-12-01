@@ -52,6 +52,20 @@ gcc -o game.exe src/core/main.c src/core/menu.c src/levels/level_editor.c src/le
 - **Flèche BAS** : Tirer vers le bas
 - **Flèche DROITE** : Tirer vers la droite
 
+### Éditeur de niveau
+
+- **Clic Gauche** : Poser une tuile
+- **Clic Droit** : Effacer une tuile
+- **1** : Sélectionner Sol
+- **2** : Sélectionner Rocher (Obstacle)
+- **3** : Sélectionner Porte (doit être sur les bords)
+- **4** : Sélectionner Coffre (Obstacle)
+- **0** : Gomme
+- **S** : Sauvegarder la salle (crée un fichier CSV)
+- **L** : Charger une salle aléatoire
+- **C** : Vider la salle
+- **ESC** : Retour au menu
+
 ### Autres
 
 - **ESC** : Quitter le jeu
@@ -97,7 +111,9 @@ projet-c/
 │       └── constants.h             # Constantes du jeu
 ├── assets/
 │   ├── images/
+│   │   ├── decor/                  # Sprites du décor
 │   │   ├── menu/                   # Images du menu
+│   │   ├── monstre/                # Sprites du monstre
 │   │   ├── personnages/            # Sprites du joueur
 │   │   └── projectiles/            # Sprites des projectiles
 │   └── fonts/                      # Polices d'écriture (TTF)
