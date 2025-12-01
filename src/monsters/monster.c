@@ -1,6 +1,7 @@
 ﻿#include "monster.h"
 #include "../utils/constants.h"
 #include "../utils/assets.h"
+#include "../levels/room.h"
 
 void monster_init(Monster* m, SDL_Renderer* renderer) {
 	m->w = 48.0f;
@@ -51,7 +52,7 @@ void monster_render(SDL_Renderer* r, Monster* m)
 }
 
 
-void monster_follow(Monster* m, float player_x, float player_y, float dt)
+void monster_follow(Monster* m, float player_x, float player_y, float dt, const Room* room, const SDL_Rect* room_rect)
 {
 	if (m->alive == false) return;
 
@@ -64,8 +65,27 @@ void monster_follow(Monster* m, float player_x, float player_y, float dt)
 		dy /= length;
 	}
 
-	m->x += dx * m->speed * dt;
-	m->y += dy * m->speed * dt;
+    // Calcul du mouvement prévu
+	float move_x = dx * m->speed * dt;
+	float move_y = dy * m->speed * dt;
+
+    // Application avec collision (axe X)
+    if (room != NULL && room_rect != NULL) {
+        float next_x = m->x + move_x;
+        if (!room_check_collision(room, room_rect, next_x, m->y, m->w, m->h)) {
+            m->x = next_x;
+        }
+
+        // Application avec collision (axe Y)
+        float next_y = m->y + move_y;
+        if (!room_check_collision(room, room_rect, m->x, next_y, m->w, m->h)) {
+            m->y = next_y;
+        }
+    } else {
+        // Fallback sans collision si room non fournie
+        m->x += move_x;
+        m->y += move_y;
+    }
 
     // Mise à jour de la direction et de la texture
     if (fabs(dx) > fabs(dy)) {

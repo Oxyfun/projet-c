@@ -328,7 +328,7 @@ int main(int argc, char* argv[]) {
             player_update(&player, keys, delta_time, current_time, projectiles, MAX_PROJECTILES, projectile_texture, &current_room, &room_rect);
 
             //maj du monstre (suit le joueur)
-            monster_follow(&monster, player.x, player.y, delta_time);
+            monster_follow(&monster, player.x, player.y, delta_time, &current_room, &room_rect);
 
             // Mise à jour des projectiles
             for (int i = 0; i < MAX_PROJECTILES; i++) {

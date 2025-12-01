@@ -1,4 +1,5 @@
 ﻿#include "../utils/sdl_common.h"
+#include "../levels/room.h"
 #include <math.h>
 #include <stdbool.h>
 
@@ -31,4 +32,4 @@ typedef struct {
 
 void monster_init(Monster* m, SDL_Renderer* renderer);
 void monster_render(SDL_Renderer* r, Monster* m);
-void monster_follow(Monster* m, float player_x, float player_y, float dt);
+void monster_follow(Monster* m, float player_x, float player_y, float dt, const Room* room, const SDL_Rect* room_rect);

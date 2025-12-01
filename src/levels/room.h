@@ -2,6 +2,7 @@
 #define ROOM_H
 
 #include <stdbool.h>
+#include "../utils/sdl_common.h"
 
 #define ROOM_ROWS 8
 #define ROOM_COLS 12
@@ -29,6 +30,7 @@ void room_add_tile(Room* room, int row, int col, TileType tile);
 void room_remove_tile(Room* room, int row, int col, TileType tile);
 bool room_tile_has(const Room* room, int row, int col, TileType tile);
 bool room_tile_is_blocking(const Room* room, int row, int col);
+bool room_check_collision(const Room* room, const SDL_Rect* room_rect, float x, float y, float w, float h);
 bool room_save_csv(const Room* room, const char* path);
 bool room_load_csv(Room* room, const char* path);
 bool room_load_random(Room* room, const char* directory);

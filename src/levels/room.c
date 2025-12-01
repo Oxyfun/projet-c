@@ -18,6 +18,35 @@ static bool room_is_valid_index(int row, int col) {
     return (row >= 0 && row < ROOM_ROWS && col >= 0 && col < ROOM_COLS);
 }
 
+static bool room_world_to_cell(const SDL_Rect* room_rect, float x, float y, int* out_row, int* out_col) {
+    if (room_rect == NULL) {
+        return false;
+    }
+
+    float local_x = x - (float)room_rect->x;
+    float local_y = y - (float)room_rect->y;
+
+    if (local_x < 0.0f || local_y < 0.0f) {
+        return false;
+    }
+
+    int col = (int)(local_x / ROOM_CELL_SIZE);
+    int row = (int)(local_y / ROOM_CELL_SIZE);
+
+    if (col < 0 || col >= ROOM_COLS || row < 0 || row >= ROOM_ROWS) {
+        return false;
+    }
+
+    if (out_col != NULL) {
+        *out_col = col;
+    }
+    if (out_row != NULL) {
+        *out_row = row;
+    }
+
+    return true;
+}
+
 void room_init(Room* room) {
     if (room == NULL) {
         return;
@@ -130,6 +159,37 @@ bool room_tile_is_blocking(const Room* room, int row, int col) {
     return room_tile_has(room, row, col, TILE_ROCK) || 
            room_tile_has(room, row, col, TILE_DOOR) || 
            room_tile_has(room, row, col, TILE_CHEST);
+}
+
+bool room_check_collision(const Room* room, const SDL_Rect* room_rect, float x, float y, float w, float h) {
+    if (room == NULL || room_rect == NULL) {
+        return false;
+    }
+
+    float margin = 4.0f;
+    float sample_points[4][2] = {
+        { x + margin, y + margin },
+        { x + w - margin, y + margin },
+        { x + margin, y + h - margin },
+        { x + w - margin, y + h - margin }
+    };
+
+    for (int i = 0; i < 4; i++) {
+        int row = 0;
+        int col = 0;
+
+        if (!room_world_to_cell(room_rect, sample_points[i][0], sample_points[i][1], &row, &col)) {
+            // Si on est hors des limites de la grille (mais dans le jeu), on considère ça comme une collision (murs invisibles)
+            // Sauf si on implémente des portes qui permettent de sortir
+            return true;
+        }
+
+        if (room_tile_is_blocking(room, row, col)) {
+            return true;
+        }
+    }
+
+    return false;
 }
 
 static void room_parse_line(Room* room, int row, const char* line) {
@@ -294,5 +354,3 @@ bool room_load_random(Room* room, const char* directory) {
     int index = rand() % count;
     return room_load_csv(room, files[index]);
 }
-
-
