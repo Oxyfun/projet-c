@@ -81,18 +81,29 @@ static bool level_editor_compute_next_save_path(char* out_path, size_t size) {
 static void level_editor_save(LevelEditor* editor) {
     // Vérifier si la salle contient au moins une porte
     bool has_door = false;
+    bool door_placement_invalid = false;
+
     for (int r = 0; r < ROOM_ROWS; r++) {
         for (int c = 0; c < ROOM_COLS; c++) {
             if (room_tile_has(&editor->room, r, c, TILE_DOOR)) {
                 has_door = true;
-                break;
+                
+                // Vérifier si la porte est sur un bord
+                bool is_edge = (r == 0 || r == ROOM_ROWS - 1 || c == 0 || c == ROOM_COLS - 1);
+                if (!is_edge) {
+                    door_placement_invalid = true;
+                }
             }
         }
-        if (has_door) break;
     }
 
     if (!has_door) {
         printf("Erreur: La salle doit contenir au moins une porte pour etre sauvegardee.\n");
+        return;
+    }
+
+    if (door_placement_invalid) {
+        printf("Erreur: Les portes doivent etre placees sur les bords de la salle.\n");
         return;
     }
 
