@@ -30,6 +30,6 @@ typedef struct {
 	int direction; // 0=bas, 1=haut, 2=gauche, 3=droite
 } Monster;
 
-void monster_init(Monster* m, SDL_Renderer* renderer);
+void monster_init(Monster* m, float x, float y, SDL_Texture* tex_up, SDL_Texture* tex_down, SDL_Texture* tex_left, SDL_Texture* tex_right);
 void monster_render(SDL_Renderer* r, Monster* m);
 void monster_follow(Monster* m, float player_x, float player_y, float dt, const Room* room, const SDL_Rect* room_rect);

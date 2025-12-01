@@ -201,8 +201,11 @@ int main(int argc, char* argv[]) {
     Player player;
     bool player_initialized = false;
 
-    //monster
-    Monster monster;
+    // Tableau de monstres
+    Monster monsters[MAX_MONSTERS];
+    for (int i = 0; i < MAX_MONSTERS; i++) {
+        monsters[i].alive = false;
+    }
 
     TTF_Font* font = TTF_OpenFont("assets/fonts/Zombie.ttf", 24);
 
@@ -230,6 +233,16 @@ int main(int argc, char* argv[]) {
     SDL_Texture* tile_chest_texture = load_texture(renderer, "assets/images/decor/Sprite-coffre.png");
     if (tile_chest_texture == NULL) {
         printf("Impossible de charger Sprite-coffre.png\n");
+    }
+
+    // Chargement des textures des monstres (une seule fois)
+    SDL_Texture* monster_tex_up = load_texture(renderer, "assets/images/monstre/monstre_haut.png");
+    SDL_Texture* monster_tex_down = load_texture(renderer, "assets/images/monstre/monstre_bas.png");
+    SDL_Texture* monster_tex_left = load_texture(renderer, "assets/images/monstre/monstre_gauche.png");
+    SDL_Texture* monster_tex_right = load_texture(renderer, "assets/images/monstre/monstre_droite.png");
+
+    if (monster_tex_down == NULL) {
+        printf("Impossible de charger les textures du monstre\n");
     }
 
     // Initialisation des projectiles
@@ -299,7 +312,6 @@ int main(int argc, char* argv[]) {
         // Initialiser le joueur et le monstre si on lance le jeu
         if (g_menu_state == MENU_STATE_GAME && !player_initialized) {
             player_init(&player, renderer);
-            monster_init(&monster, renderer);
             player_initialized = true;
             printf("ZQSD pour bouger | Flèches pour tirer\n");
 
@@ -308,6 +320,32 @@ int main(int argc, char* argv[]) {
                 room_fill(&current_room, TILE_FLOOR);
             }
             room_loaded = true;
+
+            // Réinitialiser tous les monstres
+            for (int i = 0; i < MAX_MONSTERS; i++) {
+                monsters[i].alive = false;
+            }
+
+            // Chercher les spawns de monstre dans la salle chargée
+            int spawned_count = 0;
+            for (int r = 0; r < ROOM_ROWS; r++) {
+                for (int c = 0; c < ROOM_COLS; c++) {
+                    if (room_tile_has(&current_room, r, c, TILE_MONSTER_SPAWN)) {
+                        if (spawned_count < MAX_MONSTERS) {
+                            float spawn_x = room_rect.x + c * ROOM_CELL_SIZE + (ROOM_CELL_SIZE - 48.0f) / 2; // 48.0f = monster width estimé
+                            float spawn_y = room_rect.y + r * ROOM_CELL_SIZE + (ROOM_CELL_SIZE - 48.0f) / 2;
+                            
+                            monster_init(&monsters[spawned_count], spawn_x, spawn_y, monster_tex_up, monster_tex_down, monster_tex_left, monster_tex_right);
+                            spawned_count++;
+                        }
+
+                        // Remplacer le spawn par du sol pour ne pas le voir/bloquer
+                        room_remove_tile(&current_room, r, c, TILE_MONSTER_SPAWN);
+                        room_add_tile(&current_room, r, c, TILE_FLOOR);
+                    }
+                }
+            }
+
             ensure_spawn_is_clear(&player, &current_room, &room_rect);
         }
 
@@ -327,8 +365,12 @@ int main(int argc, char* argv[]) {
             const Uint8* keys = SDL_GetKeyboardState(NULL); // quelle touche pressé
             player_update(&player, keys, delta_time, current_time, projectiles, MAX_PROJECTILES, projectile_texture, &current_room, &room_rect);
 
-            //maj du monstre (suit le joueur)
-            monster_follow(&monster, player.x, player.y, delta_time, &current_room, &room_rect);
+            // Mise à jour des monstres
+            for (int i = 0; i < MAX_MONSTERS; i++) {
+                if (monsters[i].alive) {
+                    monster_follow(&monsters[i], player.x, player.y, delta_time, &current_room, &room_rect);
+                }
+            }
 
             // Mise à jour des projectiles
             for (int i = 0; i < MAX_PROJECTILES; i++) {
@@ -342,20 +384,22 @@ int main(int argc, char* argv[]) {
                         (int)projectiles[i].size
                     };
 
-                    SDL_Rect monsterRect = {
-                        (int)monster.x,
-                        (int)monster.y,
-                        (int)monster.w,
-                        (int)monster.h
-                    };
+                    // Vérifier collision avec CHAQUE monstre
+                    for (int m = 0; m < MAX_MONSTERS; m++) {
+                        if (monsters[m].alive && projectiles[i].active) {
+                            SDL_Rect monsterRect = {
+                                (int)monsters[m].x,
+                                (int)monsters[m].y,
+                                (int)monsters[m].w,
+                                (int)monsters[m].h
+                            };
 
-                    //si le projectile touche le monstre, prend -1 hp
-                    if (projectiles[i].active && monster.alive) {
-                        if (SDL_HasIntersection(&projRect, &monsterRect)) {
-                            projectiles[i].active = false;
-                            monster.current_health -= 1;
-                            if (monster.current_health <= 0) {
-                                monster.alive = false;
+                            if (SDL_HasIntersection(&projRect, &monsterRect)) {
+                                projectiles[i].active = false;
+                                monsters[m].current_health -= 1;
+                                if (monsters[m].current_health <= 0) {
+                                    monsters[m].alive = false;
+                                }
                             }
                         }
                     }
@@ -369,7 +413,12 @@ int main(int argc, char* argv[]) {
             render_room(renderer, &current_room, &room_rect, tile_floor_texture, tile_rock_texture, tile_door_texture, tile_chest_texture);
 
             player_render(renderer, &player);
-            monster_render(renderer, &monster);
+            
+            for (int i = 0; i < MAX_MONSTERS; i++) {
+                if (monsters[i].alive) {
+                    monster_render(renderer, &monsters[i]);
+                }
+            }
 
             // HUD HP joueur
             char hp_text[32];
@@ -442,6 +491,12 @@ int main(int argc, char* argv[]) {
     if (projectile_texture != NULL) {
         SDL_DestroyTexture(projectile_texture);
     }
+
+    // Détruire les textures des monstres
+    if (monster_tex_up != NULL) SDL_DestroyTexture(monster_tex_up);
+    if (monster_tex_down != NULL) SDL_DestroyTexture(monster_tex_down);
+    if (monster_tex_left != NULL) SDL_DestroyTexture(monster_tex_left);
+    if (monster_tex_right != NULL) SDL_DestroyTexture(monster_tex_right);
 
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);

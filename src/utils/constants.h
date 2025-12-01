@@ -8,6 +8,7 @@
 
 // Constantes du jeu
 #define MAX_PROJECTILES 50
+#define MAX_MONSTERS 10
 
 // Constantes de temps
 #define MS_TO_SECONDS 1000.0f

@@ -3,11 +3,11 @@
 #include "../utils/assets.h"
 #include "../levels/room.h"
 
-void monster_init(Monster* m, SDL_Renderer* renderer) {
+void monster_init(Monster* m, float x, float y, SDL_Texture* tex_up, SDL_Texture* tex_down, SDL_Texture* tex_left, SDL_Texture* tex_right) {
 	m->w = 48.0f;
 	m->h = 48.0f;
-	m->x = (float)WINDOW_WIDTH / 5.0f - m->w / 2.0f;
-	m->y = (float)WINDOW_HEIGHT / 5.0f - m->h / 2.0f;
+	m->x = x;
+	m->y = y;
 	m->vx = 0.0f;
 	m->vy = 0.0f;
 
@@ -20,11 +20,11 @@ void monster_init(Monster* m, SDL_Renderer* renderer) {
 	m->speed = 80.0f;
     m->direction = 0;
 
-    // Chargement des textures
-    m->texture_up = load_texture(renderer, "assets/images/monstre/monstre_haut.png");
-    m->texture_down = load_texture(renderer, "assets/images/monstre/monstre_bas.png");
-    m->texture_left = load_texture(renderer, "assets/images/monstre/monstre_gauche.png");
-    m->texture_right = load_texture(renderer, "assets/images/monstre/monstre_droite.png");
+    // Assignation des textures
+    m->texture_up = tex_up;
+    m->texture_down = tex_down;
+    m->texture_left = tex_left;
+    m->texture_right = tex_right;
 
     // Texture par défaut
     m->current_texture = m->texture_down;
@@ -32,23 +32,21 @@ void monster_init(Monster* m, SDL_Renderer* renderer) {
 
 void monster_render(SDL_Renderer* r, Monster* m)
 {
+    if (!m->alive) return;
+
 	SDL_Rect rect = {
 		(int)m->x,
 		(int)m->y,
 		(int)m->w,
 		(int)m->h };
 
-	if (m->alive)
-	{
-        if (m->current_texture != NULL) {
-            SDL_RenderCopy(r, m->current_texture, NULL, &rect);
-        } else {
-            // Fallback carré rouge si pas de texture
-            SDL_SetRenderDrawColor(r, 255, 0, 0, 255);
-            SDL_RenderFillRect(r, &rect);
-        }
-	}
-
+    if (m->current_texture != NULL) {
+        SDL_RenderCopy(r, m->current_texture, NULL, &rect);
+    } else {
+        // Fallback carré rouge si pas de texture
+        SDL_SetRenderDrawColor(r, 255, 0, 0, 255);
+        SDL_RenderFillRect(r, &rect);
+    }
 }
 
 

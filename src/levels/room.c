@@ -85,6 +85,9 @@ void room_set_tile(Room* room, int row, int col, TileType tile) {
     if ((value & TILE_CHEST) != 0) {
         value |= TILE_FLOOR;
     }
+    if ((value & TILE_MONSTER_SPAWN) != 0) {
+        value |= TILE_FLOOR;
+    }
 
     room->tiles[row][col] = value;
 }
@@ -117,6 +120,10 @@ void room_add_tile(Room* room, int row, int col, TileType tile) {
         current |= (TILE_CHEST | TILE_FLOOR);
     }
 
+    if ((tile & TILE_MONSTER_SPAWN) != 0) {
+        current |= (TILE_MONSTER_SPAWN | TILE_FLOOR);
+    }
+
     room->tiles[row][col] = current;
 }
 
@@ -141,6 +148,9 @@ void room_remove_tile(Room* room, int row, int col, TileType tile) {
         current |= TILE_FLOOR;
     }
     if ((current & TILE_CHEST) != 0) {
+        current |= TILE_FLOOR;
+    }
+    if ((current & TILE_MONSTER_SPAWN) != 0) {
         current |= TILE_FLOOR;
     }
 
@@ -206,7 +216,7 @@ static void room_parse_line(Room* room, int row, const char* line) {
             value = 0;
         }
 
-        TileType tile = (TileType)(value & (TILE_FLOOR | TILE_ROCK | TILE_DOOR | TILE_CHEST));
+        TileType tile = (TileType)(value & (TILE_FLOOR | TILE_ROCK | TILE_DOOR | TILE_CHEST | TILE_MONSTER_SPAWN));
 
         if ((tile & TILE_ROCK) != 0) {
             tile |= TILE_FLOOR;
@@ -215,6 +225,9 @@ static void room_parse_line(Room* room, int row, const char* line) {
             tile |= TILE_FLOOR;
         }
         if ((tile & TILE_CHEST) != 0) {
+            tile |= TILE_FLOOR;
+        }
+        if ((tile & TILE_MONSTER_SPAWN) != 0) {
             tile |= TILE_FLOOR;
         }
 
