@@ -1,5 +1,6 @@
 ﻿#include "monster.h"
 #include "../utils/constants.h"
+#include "../utils/assets.h"
 
 void monster_init(Monster* m, SDL_Renderer* renderer) {
 	m->w = 48.0f;
@@ -16,6 +17,16 @@ void monster_init(Monster* m, SDL_Renderer* renderer) {
 	m->current_health = m->health;
 
 	m->speed = 80.0f;
+    m->direction = 0;
+
+    // Chargement des textures
+    m->texture_up = load_texture(renderer, "assets/images/monstre/monstre_haut.png");
+    m->texture_down = load_texture(renderer, "assets/images/monstre/monstre_bas.png");
+    m->texture_left = load_texture(renderer, "assets/images/monstre/monstre_gauche.png");
+    m->texture_right = load_texture(renderer, "assets/images/monstre/monstre_droite.png");
+
+    // Texture par défaut
+    m->current_texture = m->texture_down;
 }
 
 void monster_render(SDL_Renderer* r, Monster* m)
@@ -28,8 +39,13 @@ void monster_render(SDL_Renderer* r, Monster* m)
 
 	if (m->alive)
 	{
-		SDL_SetRenderDrawColor(r, 0, 100, 255, 255);
-		SDL_RenderFillRect(r, &rect);
+        if (m->current_texture != NULL) {
+            SDL_RenderCopy(r, m->current_texture, NULL, &rect);
+        } else {
+            // Fallback carré rouge si pas de texture
+            SDL_SetRenderDrawColor(r, 255, 0, 0, 255);
+            SDL_RenderFillRect(r, &rect);
+        }
 	}
 
 }
@@ -50,4 +66,23 @@ void monster_follow(Monster* m, float player_x, float player_y, float dt)
 
 	m->x += dx * m->speed * dt;
 	m->y += dy * m->speed * dt;
+
+    // Mise à jour de la direction et de la texture
+    if (fabs(dx) > fabs(dy)) {
+        if (dx > 0) {
+            m->direction = 3; // Droite
+            m->current_texture = m->texture_right;
+        } else {
+            m->direction = 2; // Gauche
+            m->current_texture = m->texture_left;
+        }
+    } else {
+        if (dy > 0) {
+            m->direction = 0; // Bas
+            m->current_texture = m->texture_down;
+        } else {
+            m->direction = 1; // Haut
+            m->current_texture = m->texture_up;
+        }
+    }
 }

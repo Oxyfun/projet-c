@@ -20,7 +20,13 @@ typedef struct {
 
 	bool alive;
 
-	SDL_Texture* texture;
+	SDL_Texture* texture_up;
+	SDL_Texture* texture_down;
+	SDL_Texture* texture_left;
+	SDL_Texture* texture_right;
+	SDL_Texture* current_texture;
+
+	int direction; // 0=bas, 1=haut, 2=gauche, 3=droite
 } Monster;
 
 void monster_init(Monster* m, SDL_Renderer* renderer);
