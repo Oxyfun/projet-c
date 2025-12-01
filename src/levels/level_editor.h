@@ -10,6 +10,7 @@ typedef struct {
     TileType selected_tile;
     SDL_Texture* texture_floor;
     SDL_Texture* texture_rock;
+    SDL_Texture* texture_door;
     SDL_Rect grid_rect;
     int hovered_row;
     int hovered_col;

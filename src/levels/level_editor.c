@@ -79,6 +79,23 @@ static bool level_editor_compute_next_save_path(char* out_path, size_t size) {
 }
 
 static void level_editor_save(LevelEditor* editor) {
+    // Vérifier si la salle contient au moins une porte
+    bool has_door = false;
+    for (int r = 0; r < ROOM_ROWS; r++) {
+        for (int c = 0; c < ROOM_COLS; c++) {
+            if (room_tile_has(&editor->room, r, c, TILE_DOOR)) {
+                has_door = true;
+                break;
+            }
+        }
+        if (has_door) break;
+    }
+
+    if (!has_door) {
+        printf("Erreur: La salle doit contenir au moins une porte pour etre sauvegardee.\n");
+        return;
+    }
+
     char path[260];
     if (!level_editor_compute_next_save_path(path, sizeof(path))) {
         printf("Impossible de trouver un nom de fichier disponible.\n");
@@ -115,10 +132,11 @@ void level_editor_init(LevelEditor* editor, SDL_Renderer* renderer) {
 
     editor->texture_floor = load_texture(renderer, "assets/images/decor/Sprite-sol.png");
     editor->texture_rock = load_texture(renderer, "assets/images/decor/Sprite-rock.png");
+    editor->texture_door = load_texture(renderer, "assets/images/decor/Sprite-porte.png");
 
     printf("=== Editeur de niveaux actif ===\n");
     printf("Clic gauche: poser | Clic droit: effacer\n");
-    printf("Touches: 1 sol | 2 rocher | 0 vide | C vider | S sauver | L charger aleatoire | ESC retour menu\n");
+    printf("Touches: 1 sol | 2 rocher | 3 porte | 0 vide | C vider | S sauver | L charger aleatoire | ESC retour menu\n");
 }
 
 void level_editor_handle_event(LevelEditor* editor, SDL_Event* event) {
@@ -156,6 +174,9 @@ void level_editor_handle_event(LevelEditor* editor, SDL_Event* event) {
                     break;
                 case SDLK_2:
                     editor->selected_tile = TILE_ROCK;
+                    break;
+                case SDLK_3:
+                    editor->selected_tile = TILE_DOOR;
                     break;
                 case SDLK_c:
                     level_editor_clear(editor);
@@ -207,6 +228,12 @@ static void level_editor_render_selected_tile(LevelEditor* editor, SDL_Renderer*
                 SDL_RenderCopy(renderer, editor->texture_rock, NULL, &inner);
             }
         }
+
+        if ((editor->selected_tile & TILE_DOOR) != 0) {
+            if (editor->texture_door != NULL) {
+                SDL_RenderCopy(renderer, editor->texture_door, NULL, &inner);
+            }
+        }
     }
 
     SDL_SetRenderDrawColor(renderer, 200, 200, 200, 255);
@@ -232,6 +259,7 @@ void level_editor_render(LevelEditor* editor, SDL_Renderer* renderer) {
 
             bool has_floor = room_tile_has(&editor->room, r, c, TILE_FLOOR);
             bool has_rock = room_tile_has(&editor->room, r, c, TILE_ROCK);
+            bool has_door = room_tile_has(&editor->room, r, c, TILE_DOOR);
 
             if (has_floor) {
                 if (editor->texture_floor != NULL) {
@@ -240,7 +268,7 @@ void level_editor_render(LevelEditor* editor, SDL_Renderer* renderer) {
                     SDL_SetRenderDrawColor(renderer, 90, 90, 90, 255);
                     SDL_RenderFillRect(renderer, &cell);
                 }
-            } else if (!has_rock) {
+            } else if (!has_rock && !has_door) {
                 SDL_SetRenderDrawColor(renderer, 40, 40, 60, 255);
                 SDL_RenderFillRect(renderer, &cell);
             }
@@ -250,6 +278,15 @@ void level_editor_render(LevelEditor* editor, SDL_Renderer* renderer) {
                     SDL_RenderCopy(renderer, editor->texture_rock, NULL, &cell);
                 } else {
                     SDL_SetRenderDrawColor(renderer, 100, 100, 100, 255);
+                    SDL_RenderFillRect(renderer, &cell);
+                }
+            }
+
+            if (has_door) {
+                if (editor->texture_door != NULL) {
+                    SDL_RenderCopy(renderer, editor->texture_door, NULL, &cell);
+                } else {
+                    SDL_SetRenderDrawColor(renderer, 139, 69, 19, 255);
                     SDL_RenderFillRect(renderer, &cell);
                 }
             }
@@ -287,6 +324,11 @@ void level_editor_cleanup(LevelEditor* editor) {
     if (editor->texture_rock != NULL) {
         SDL_DestroyTexture(editor->texture_rock);
         editor->texture_rock = NULL;
+    }
+
+    if (editor->texture_door != NULL) {
+        SDL_DestroyTexture(editor->texture_door);
+        editor->texture_door = NULL;
     }
 }
 

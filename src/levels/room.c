@@ -50,6 +50,9 @@ void room_set_tile(Room* room, int row, int col, TileType tile) {
     if ((value & TILE_ROCK) != 0) {
         value |= TILE_FLOOR;
     }
+    if ((value & TILE_DOOR) != 0) {
+        value |= TILE_FLOOR;
+    }
 
     room->tiles[row][col] = value;
 }
@@ -74,6 +77,10 @@ void room_add_tile(Room* room, int row, int col, TileType tile) {
         current |= (TILE_ROCK | TILE_FLOOR);
     }
 
+    if ((tile & TILE_DOOR) != 0) {
+        current |= (TILE_DOOR | TILE_FLOOR);
+    }
+
     room->tiles[row][col] = current;
 }
 
@@ -94,6 +101,9 @@ void room_remove_tile(Room* room, int row, int col, TileType tile) {
     if ((current & TILE_ROCK) != 0) {
         current |= TILE_FLOOR;
     }
+    if ((current & TILE_DOOR) != 0) {
+        current |= TILE_FLOOR;
+    }
 
     room->tiles[row][col] = current;
 }
@@ -107,7 +117,7 @@ bool room_tile_has(const Room* room, int row, int col, TileType tile) {
 }
 
 bool room_tile_is_blocking(const Room* room, int row, int col) {
-    return room_tile_has(room, row, col, TILE_ROCK);
+    return room_tile_has(room, row, col, TILE_ROCK) || room_tile_has(room, row, col, TILE_DOOR);
 }
 
 static void room_parse_line(Room* room, int row, const char* line) {
@@ -124,9 +134,12 @@ static void room_parse_line(Room* room, int row, const char* line) {
             value = 0;
         }
 
-        TileType tile = (TileType)(value & (TILE_FLOOR | TILE_ROCK));
+        TileType tile = (TileType)(value & (TILE_FLOOR | TILE_ROCK | TILE_DOOR));
 
         if ((tile & TILE_ROCK) != 0) {
+            tile |= TILE_FLOOR;
+        }
+        if ((tile & TILE_DOOR) != 0) {
             tile |= TILE_FLOOR;
         }
 
