@@ -13,7 +13,7 @@ Un jeu 2D en C inspiré de The Binding of Isaac, développé avec SDL2.
 ### Windows (MSYS2)
 
 ```bash
-pacman -S mingw-w64-x86_64-SDL2 mingw-w64-x86_64-SDL2_image
+pacman -S mingw-w64-x86_64-SDL2 mingw-w64-x86_64-SDL2_image mingw-w64-x86_64-SDL2_ttf
 ```
 
 ## Compilation et exécution
@@ -27,15 +27,13 @@ pacman -S mingw-w64-x86_64-SDL2 mingw-w64-x86_64-SDL2_image
 ### Avec Make
 
 ```bash
-make # Compiler
-make run # Compiler et exécuter
-make clean # Nettoyer
+make
 ```
 
 ### Compilation manuelle
 
 ```bash
-gcc -o game.exe src/core/main.c src/player/player.c src/player/projectile.c src/utils/assets.c -Isrc -lmingw32 -lSDL2main -lSDL2 -lSDL2_image
+gcc -o game.exe src/core/main.c src/core/menu.c src/levels/level_editor.c src/levels/room.c src/monsters/monster.c src/player/player.c src/player/projectile.c src/utils/assets.c -Isrc -lmingw32 -lSDL2main -lSDL2 -lSDL2_image -lSDL2_ttf
 ```
 
 ## Contrôles
@@ -69,9 +67,12 @@ gcc -o game.exe src/core/main.c src/player/player.c src/player/projectile.c src/
 - ✅ Structure Player modulaire
 - ✅ Système de tir
 - ✅ Menu au lancement
-- ⏳ Gestion des collisions
-- ⏳ Ennemis et objets
-- ⏳ Salles et transitions
+- ✅ Monstres (IA de suivi simple)
+- ✅ Gestion des salles
+- ✅ Éditeur de niveau
+- ✅ Système de collision
+- ⏳ Objets et items
+- ⏳ Transitions entre salles
 - ⏳ Mini-boss
 
 ## Structure du projet
@@ -81,29 +82,28 @@ projet-c/
 ├── src/
 │   ├── core/                       # Fichiers principaux
 │   │   ├── main.c                  # Boucle de jeu
-│   │   ├── menu.h                  # Déclarations du menu
-│   │   └── menu.c                  # Implémentation du menu
+│   │   ├── menu.h/.c               # Gestion du menu
+│   ├── levels/                     # Gestion des niveaux
+│   │   ├── level_editor.h/.c       # Éditeur de niveau
+│   │   ├── room.h/.c               # Gestion des salles
+│   ├── monsters/                   # Gestion des ennemis
+│   │   ├── monster.h/.c            # IA et stats des monstres
 │   ├── player/
-│   │   ├── player.h                # Déclarations du joueur
-│   │   ├── player.c                # Implémentation du joueur
-│   │   ├── projectile.h            # Déclarations des projectiles
-│   │   └── projectile.c            # Implémentation des projectiles
+│   │   ├── player.h/.c             # Joueur
+│   │   ├── projectile.h/.c         # Projectiles
 │   └── utils/                      # Utilitaires
-│       ├── sdl_common.h            # Gestion SDL
-│       ├── assets.h                # Déclarations des assets
-│       ├── assets.c                # Chargement des textures
+│       ├── sdl_common.h            # Inclusions SDL multi-plateforme
+│       ├── assets.h/.c             # Chargement des assets
 │       └── constants.h             # Constantes du jeu
 ├── assets/
-│   └── images/
-│       ├── menu/                   # Images du menu
-│       ├── personnages/            # Sprites du joueur
-│       └── projectiles/            # Sprites des projectiles
-│           └── proj.png
-├── compile.bat                     # Script de compilation Windows
-├── Makefile                        # Makefile
-├── The_Binding_of_Bilo.exe         # Jeu
+│   ├── images/
+│   │   ├── menu/                   # Images du menu
+│   │   ├── personnages/            # Sprites du joueur
+│   │   └── projectiles/            # Sprites des projectiles
+│   └── fonts/                      # Polices d'écriture (TTF)
+├── Makefile                        # Makefile multi-plateforme
+├── The_Binding_of_Bilo(.exe)       # Exécutable du jeu
 └── README.md                       # Documentation du projet
-
 ```
 
 ## SDL2

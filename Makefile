@@ -1,47 +1,74 @@
 # Makefile pour le projet Binding of Isaac
 
-# Compilateur et flags
+# Détection de l'OS
+ifeq ($(OS),Windows_NT)
+    detected_OS := Windows
+else
+    detected_OS := $(shell uname -s)
+endif
+
 CC = gcc
 CFLAGS = -Wall -Wextra -Isrc
-LDFLAGS = -lmingw32 -lSDL2main -lSDL2 -lSDL2_image
 
-# Nom de l'exécutable
-TARGET = The_Binding_of_Bilo.exe
+# Configuration selon l'OS
+ifeq ($(detected_OS),Windows)
+    # Configuration Windows (MinGW)
+    LDFLAGS = -lmingw32 -lSDL2main -lSDL2 -lSDL2_image -lSDL2_ttf
+    TARGET = The_Binding_of_Bilo.exe
+    # Commande de nettoyage des objets seulement
+    CLEAN_OBJS_CMD = del /Q src\core\*.o src\levels\*.o src\monsters\*.o src\player\*.o src\utils\*.o 2>nul
+    # Commande de nettoyage complet
+    CLEAN_CMD = $(CLEAN_OBJS_CMD) && del /Q $(TARGET) 2>nul || echo Dossier deja propre.
+    RUN_CMD = .\\$(TARGET)
+else
+    # Configuration Linux / WSL
+    # Utilisation de sdl2-config pour obtenir les bons chemins
+    CFLAGS += $(shell sdl2-config --cflags)
+    LDFLAGS = $(shell sdl2-config --libs) -lSDL2_image -lSDL2_ttf -lm
+    TARGET = The_Binding_of_Bilo
+    # Commande de nettoyage des objets seulement
+    CLEAN_OBJS_CMD = rm -f src/core/*.o src/levels/*.o src/monsters/*.o src/player/*.o src/utils/*.o
+    # Commande de nettoyage complet
+    CLEAN_CMD = $(CLEAN_OBJS_CMD) && rm -f $(TARGET)
+    RUN_CMD = ./$(TARGET)
+endif
 
 # Fichiers source
 SOURCES = src/core/main.c \
           src/core/menu.c \
           src/levels/level_editor.c \
           src/levels/room.c \
+          src/monsters/monster.c \
           src/player/player.c \
           src/player/projectile.c \
           src/utils/assets.c
 
-# Fichiers objets (générés à partir des sources)
+# Fichiers objets
 OBJECTS = $(SOURCES:.c=.o)
 
-# Règle par défaut : compiler le projet
+# Règle par défaut
 all: $(TARGET)
 
-# Règle pour créer l'exécutable
+# Création de l'exécutable
 $(TARGET): $(OBJECTS)
 	$(CC) $(OBJECTS) -o $(TARGET) $(LDFLAGS)
 	@echo "Compilation reussie ! Executable: $(TARGET)"
+	@echo "Nettoyage des fichiers objets..."
+	$(CLEAN_OBJS_CMD)
 
-# Règle pour compiler les fichiers .c en .o
+# Compilation des fichiers objets
 %.o: %.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
-# Nettoyer les fichiers objets et l'exécutable
+# Nettoyage complet (objets + exe)
 clean:
-	del /Q src\core\*.o src\player\*.o src\utils\*.o $(TARGET) 2>nul || echo Dossier deja propre.
+	$(CLEAN_CMD)
 
-# Recompiler complètement
+# Recompiler
 rebuild: clean all
 
-# Compiler et lancer le jeu
+# Lancer
 run: $(TARGET)
-	.\$(TARGET)
+	$(RUN_CMD)
 
 .PHONY: all clean rebuild run
-
