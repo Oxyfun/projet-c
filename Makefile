@@ -15,9 +15,7 @@ ifeq ($(detected_OS),Windows)
     # Configuration Windows (MinGW)
     LDFLAGS = -lmingw32 -lSDL2main -lSDL2 -lSDL2_image -lSDL2_ttf
     TARGET = The_Binding_of_Bilo.exe
-    # Commande de nettoyage des objets seulement
     CLEAN_OBJS_CMD = del /Q src\core\*.o src\levels\*.o src\monsters\*.o src\player\*.o src\utils\*.o 2>nul
-    # Commande de nettoyage complet
     CLEAN_CMD = $(CLEAN_OBJS_CMD) && del /Q $(TARGET) 2>nul || echo Dossier deja propre.
     RUN_CMD = .\\$(TARGET)
 else
@@ -26,9 +24,7 @@ else
     CFLAGS += $(shell sdl2-config --cflags)
     LDFLAGS = $(shell sdl2-config --libs) -lSDL2_image -lSDL2_ttf -lm
     TARGET = The_Binding_of_Bilo
-    # Commande de nettoyage des objets seulement
     CLEAN_OBJS_CMD = rm -f src/core/*.o src/levels/*.o src/monsters/*.o src/player/*.o src/utils/*.o
-    # Commande de nettoyage complet
     CLEAN_CMD = $(CLEAN_OBJS_CMD) && rm -f $(TARGET)
     RUN_CMD = ./$(TARGET)
 endif
