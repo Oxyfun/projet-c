@@ -144,10 +144,11 @@ void level_editor_init(LevelEditor* editor, SDL_Renderer* renderer) {
     editor->texture_floor = load_texture(renderer, "assets/images/decor/Sprite-sol.png");
     editor->texture_rock = load_texture(renderer, "assets/images/decor/Sprite-rock.png");
     editor->texture_door = load_texture(renderer, "assets/images/decor/Sprite-porte.png");
+    editor->texture_chest = load_texture(renderer, "assets/images/decor/Sprite-coffre.png");
 
     printf("=== Editeur de niveaux actif ===\n");
     printf("Clic gauche: poser | Clic droit: effacer\n");
-    printf("Touches: 1 sol | 2 rocher | 3 porte | 0 vide | C vider | S sauver | L charger aleatoire | ESC retour menu\n");
+    printf("Touches: 1 sol | 2 rocher | 3 porte | 4 coffre | 0 vide | C vider | S sauver | L charger aleatoire | ESC retour menu\n");
 }
 
 void level_editor_handle_event(LevelEditor* editor, SDL_Event* event) {
@@ -188,6 +189,9 @@ void level_editor_handle_event(LevelEditor* editor, SDL_Event* event) {
                     break;
                 case SDLK_3:
                     editor->selected_tile = TILE_DOOR;
+                    break;
+                case SDLK_4:
+                    editor->selected_tile = TILE_CHEST;
                     break;
                 case SDLK_c:
                     level_editor_clear(editor);
@@ -245,6 +249,12 @@ static void level_editor_render_selected_tile(LevelEditor* editor, SDL_Renderer*
                 SDL_RenderCopy(renderer, editor->texture_door, NULL, &inner);
             }
         }
+
+        if ((editor->selected_tile & TILE_CHEST) != 0) {
+            if (editor->texture_chest != NULL) {
+                SDL_RenderCopy(renderer, editor->texture_chest, NULL, &inner);
+            }
+        }
     }
 
     SDL_SetRenderDrawColor(renderer, 200, 200, 200, 255);
@@ -271,6 +281,7 @@ void level_editor_render(LevelEditor* editor, SDL_Renderer* renderer) {
             bool has_floor = room_tile_has(&editor->room, r, c, TILE_FLOOR);
             bool has_rock = room_tile_has(&editor->room, r, c, TILE_ROCK);
             bool has_door = room_tile_has(&editor->room, r, c, TILE_DOOR);
+            bool has_chest = room_tile_has(&editor->room, r, c, TILE_CHEST);
 
             if (has_floor) {
                 if (editor->texture_floor != NULL) {
@@ -279,7 +290,7 @@ void level_editor_render(LevelEditor* editor, SDL_Renderer* renderer) {
                     SDL_SetRenderDrawColor(renderer, 90, 90, 90, 255);
                     SDL_RenderFillRect(renderer, &cell);
                 }
-            } else if (!has_rock && !has_door) {
+            } else if (!has_rock && !has_door && !has_chest) {
                 SDL_SetRenderDrawColor(renderer, 40, 40, 60, 255);
                 SDL_RenderFillRect(renderer, &cell);
             }
@@ -298,6 +309,15 @@ void level_editor_render(LevelEditor* editor, SDL_Renderer* renderer) {
                     SDL_RenderCopy(renderer, editor->texture_door, NULL, &cell);
                 } else {
                     SDL_SetRenderDrawColor(renderer, 139, 69, 19, 255);
+                    SDL_RenderFillRect(renderer, &cell);
+                }
+            }
+
+            if (has_chest) {
+                if (editor->texture_chest != NULL) {
+                    SDL_RenderCopy(renderer, editor->texture_chest, NULL, &cell);
+                } else {
+                    SDL_SetRenderDrawColor(renderer, 255, 215, 0, 255);
                     SDL_RenderFillRect(renderer, &cell);
                 }
             }
@@ -340,6 +360,11 @@ void level_editor_cleanup(LevelEditor* editor) {
     if (editor->texture_door != NULL) {
         SDL_DestroyTexture(editor->texture_door);
         editor->texture_door = NULL;
+    }
+
+    if (editor->texture_chest != NULL) {
+        SDL_DestroyTexture(editor->texture_chest);
+        editor->texture_chest = NULL;
     }
 }
 

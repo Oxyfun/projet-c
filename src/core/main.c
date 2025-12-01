@@ -73,7 +73,7 @@ static void ensure_spawn_is_clear(Player* player, Room* room, const SDL_Rect* ro
     }
 }
 
-static void render_room(SDL_Renderer* renderer, const Room* room, const SDL_Rect* room_rect, SDL_Texture* texture_floor, SDL_Texture* texture_rock, SDL_Texture* texture_door) {
+static void render_room(SDL_Renderer* renderer, const Room* room, const SDL_Rect* room_rect, SDL_Texture* texture_floor, SDL_Texture* texture_rock, SDL_Texture* texture_door, SDL_Texture* texture_chest) {
     if (renderer == NULL || room == NULL || room_rect == NULL) {
         return;
     }
@@ -90,6 +90,7 @@ static void render_room(SDL_Renderer* renderer, const Room* room, const SDL_Rect
             bool has_floor = room_tile_has(room, r, c, TILE_FLOOR);
             bool has_rock = room_tile_has(room, r, c, TILE_ROCK);
             bool has_door = room_tile_has(room, r, c, TILE_DOOR);
+            bool has_chest = room_tile_has(room, r, c, TILE_CHEST);
 
             if (has_floor) {
                 if (texture_floor != NULL) {
@@ -100,7 +101,7 @@ static void render_room(SDL_Renderer* renderer, const Room* room, const SDL_Rect
                     SDL_RenderFillRect(renderer, &cell);
                 }
             }
-            else if (!has_rock && !has_door) {
+            else if (!has_rock && !has_door && !has_chest) {
                 SDL_SetRenderDrawColor(renderer, 40, 40, 60, 255);
                 SDL_RenderFillRect(renderer, &cell);
             }
@@ -121,6 +122,16 @@ static void render_room(SDL_Renderer* renderer, const Room* room, const SDL_Rect
                 }
                 else {
                     SDL_SetRenderDrawColor(renderer, 139, 69, 19, 255);
+                    SDL_RenderFillRect(renderer, &cell);
+                }
+            }
+
+            if (has_chest) {
+                if (texture_chest != NULL) {
+                    SDL_RenderCopy(renderer, texture_chest, NULL, &cell);
+                }
+                else {
+                    SDL_SetRenderDrawColor(renderer, 255, 215, 0, 255);
                     SDL_RenderFillRect(renderer, &cell);
                 }
             }
@@ -214,6 +225,11 @@ int main(int argc, char* argv[]) {
     SDL_Texture* tile_door_texture = load_texture(renderer, "assets/images/decor/Sprite-porte.png");
     if (tile_door_texture == NULL) {
         printf("Impossible de charger Sprite-porte.png\n");
+    }
+
+    SDL_Texture* tile_chest_texture = load_texture(renderer, "assets/images/decor/Sprite-coffre.png");
+    if (tile_chest_texture == NULL) {
+        printf("Impossible de charger Sprite-coffre.png\n");
     }
 
     // Initialisation des projectiles
@@ -350,7 +366,7 @@ int main(int argc, char* argv[]) {
             SDL_SetRenderDrawColor(renderer, 50, 50, 50, 255);
             SDL_RenderClear(renderer);
 
-            render_room(renderer, &current_room, &room_rect, tile_floor_texture, tile_rock_texture, tile_door_texture);
+            render_room(renderer, &current_room, &room_rect, tile_floor_texture, tile_rock_texture, tile_door_texture, tile_chest_texture);
 
             player_render(renderer, &player);
             monster_render(renderer, &monster);
@@ -416,6 +432,10 @@ int main(int argc, char* argv[]) {
 
     if (tile_door_texture != NULL) {
         SDL_DestroyTexture(tile_door_texture);
+    }
+
+    if (tile_chest_texture != NULL) {
+        SDL_DestroyTexture(tile_chest_texture);
     }
 
     // Détruire la texture partagée des projectiles
