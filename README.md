@@ -60,6 +60,7 @@ gcc -o game.exe src/core/main.c src/core/menu.c src/levels/level_editor.c src/le
 - **2** : Sélectionner Rocher (Obstacle)
 - **3** : Sélectionner Porte (doit être sur les bords)
 - **4** : Sélectionner Coffre (Obstacle)
+- **5** : Sélectionner un Monstre
 - **0** : Gomme
 - **S** : Sauvegarder la salle (crée un fichier CSV)
 - **L** : Charger une salle aléatoire
@@ -81,12 +82,14 @@ gcc -o game.exe src/core/main.c src/core/menu.c src/levels/level_editor.c src/le
 - ✅ Structure Player modulaire
 - ✅ Système de tir
 - ✅ Menu au lancement
-- ✅ Monstres (IA de suivi simple)
+- ✅ Monstres (IA de suivi, collision, dégâts)
 - ✅ Gestion des salles
 - ✅ Éditeur de niveau
 - ✅ Système de collision
+- ✅ Génération procédurale de donjon (Donjon aléatoire)
+- ✅ Transitions entre salles
+- ✅ Minimap
 - ⏳ Objets et items
-- ⏳ Transitions entre salles
 - ⏳ Mini-boss
 
 ## Structure du projet
@@ -100,6 +103,7 @@ projet-c/
 │   ├── levels/                     # Gestion des niveaux
 │   │   ├── level_editor.h/.c       # Éditeur de niveau
 │   │   ├── room.h/.c               # Gestion des salles
+│   │   ├── dungeon.h/.c            # Génération procédurale du donjon
 │   ├── monsters/                   # Gestion des ennemis
 │   │   ├── monster.h/.c            # IA et stats des monstres
 │   ├── player/
