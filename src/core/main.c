@@ -166,6 +166,43 @@ static void render_room(SDL_Renderer* renderer, const Room* room, const SDL_Rect
     }
 }
 
+static void render_minimap(SDL_Renderer* renderer, const Dungeon* dungeon) {
+    if (renderer == NULL || dungeon == NULL) return;
+
+    // Activer la transparence
+    SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
+
+    int cell_size = 15;
+    int margin = 20;
+    int start_x = WINDOW_WIDTH - (DUNGEON_MAP_SIZE * cell_size) - margin;
+    int start_y = 20;
+
+    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 100);
+    SDL_Rect bg_rect = { start_x - 5, start_y - 5, DUNGEON_MAP_SIZE * cell_size + 10, DUNGEON_MAP_SIZE * cell_size + 10 };
+    SDL_RenderFillRect(renderer, &bg_rect);
+
+    for (int x = 0; x < DUNGEON_MAP_SIZE; x++) {
+        for (int y = 0; y < DUNGEON_MAP_SIZE; y++) {
+            // On ne dessine que si la salle existe
+            if (dungeon->has_room[x][y]) {
+                SDL_Rect cell = {
+                    start_x + x * cell_size,
+                    start_y + y * cell_size,
+                    cell_size - 2,
+                    cell_size - 2
+                };
+
+                if (x == dungeon->current_map_x && y == dungeon->current_map_y) {
+                    SDL_SetRenderDrawColor(renderer, 255, 0, 0, 200);
+                } else {
+                    SDL_SetRenderDrawColor(renderer, 200, 200, 200, 150);
+                }
+                SDL_RenderFillRect(renderer, &cell);
+            }
+        }
+    }
+}
+
 int main(int argc, char* argv[]) {
     // Initialisation de SDL + vérif
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {
@@ -467,11 +504,14 @@ int main(int argc, char* argv[]) {
             SDL_Surface* surface = TTF_RenderText_Blended(font, hp_text, red);
             SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface);
 
-            SDL_Rect hp_ui = { 700, 20, surface->w, surface->h };
+            SDL_Rect hp_ui = { 20, 10, surface->w, surface->h };
             SDL_RenderCopy(renderer, texture, NULL, &hp_ui);
 
             SDL_FreeSurface(surface);
             SDL_DestroyTexture(texture);
+
+            // Afficher la minimap
+            render_minimap(renderer, &dungeon);
 
             for (int i = 0; i < MAX_PROJECTILES; i++) {
                 if (projectiles[i].active) {
