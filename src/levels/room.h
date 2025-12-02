@@ -35,7 +35,7 @@ bool room_check_collision(const Room* room, const SDL_Rect* room_rect, float x, 
 bool room_save_csv(const Room* room, const char* path);
 bool room_load_csv(Room* room, const char* path);
 bool room_load_random(Room* room, const char* directory);
-int room_collect_csv_files(const char* directory, char files[][260], int max_files);
+int room_collect_csv_files(const char* directory, char files[][400], int max_files);
 
 #endif
 

@@ -299,7 +299,7 @@ bool room_load_csv(Room* room, const char* path) {
     return true;
 }
 
-int room_collect_csv_files(const char* directory, char files[][260], int max_files) {
+int room_collect_csv_files(const char* directory, char files[][400], int max_files) {
     if (directory == NULL || files == NULL || max_files <= 0) {
         return 0;
     }
@@ -355,7 +355,7 @@ bool room_load_random(Room* room, const char* directory) {
         return false;
     }
 
-    char files[64][260];
+    char files[64][400];
     int count = room_collect_csv_files(directory, files, 64);
 
     if (count <= 0) {
