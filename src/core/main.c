@@ -7,6 +7,7 @@
 #include "../utils/assets.h"
 #include "../player/player.h"
 #include "../levels/room.h"
+#include "../levels/dungeon.h"
 #include "../levels/level_editor.h"
 #include "../monsters/monster.h"
 #include "menu.h"
@@ -69,6 +70,31 @@ static void ensure_spawn_is_clear(Player* player, Room* room, const SDL_Rect* ro
         if (world_to_room_cell(room_rect, sample_points[i][0], sample_points[i][1], &row, &col)) {
             room_remove_tile(room, row, col, TILE_ROCK);
             room_add_tile(room, row, col, TILE_FLOOR);
+        }
+    }
+}
+
+static void setup_room_entities(Room* room, const SDL_Rect* room_rect, Monster* monsters, int max_monsters, SDL_Texture* t_up, SDL_Texture* t_down, SDL_Texture* t_left, SDL_Texture* t_right) {
+    // Réinitialiser tous les monstres
+    for (int i = 0; i < max_monsters; i++) {
+        monsters[i].alive = false;
+    }
+
+    if (room == NULL) return;
+
+    // Chercher les spawns de monstre
+    int spawned_count = 0;
+    for (int r = 0; r < ROOM_ROWS; r++) {
+        for (int c = 0; c < ROOM_COLS; c++) {
+            if (room_tile_has(room, r, c, TILE_MONSTER_SPAWN)) {
+                if (spawned_count < max_monsters) {
+                    float spawn_x = room_rect->x + c * ROOM_CELL_SIZE + (ROOM_CELL_SIZE - 48.0f) / 2;
+                    float spawn_y = room_rect->y + r * ROOM_CELL_SIZE + (ROOM_CELL_SIZE - 48.0f) / 2;
+                    
+                    monster_init(&monsters[spawned_count], spawn_x, spawn_y, t_up, t_down, t_left, t_right);
+                    spawned_count++;
+                }
+            }
         }
     }
 }
@@ -192,10 +218,13 @@ int main(int argc, char* argv[]) {
     LevelEditor level_editor;
     bool level_editor_initialized = false;
 
-    Room current_room;
-    room_init(&current_room);
+    // Donjon
+    Dungeon dungeon;
+    dungeon_init(&dungeon);
+    dungeon_load_templates(&dungeon, ROOMS_DIRECTORY);
+
     SDL_Rect room_rect = create_room_rect();
-    bool room_loaded = false;
+    bool game_started = false;
 
     // Initialisation du joueur (sera initialisé quand on lance le jeu via le menu)
     Player player;
@@ -309,44 +338,20 @@ int main(int argc, char* argv[]) {
             running = false;
         }
 
-        // Initialiser le joueur et le monstre si on lance le jeu
+        // Initialiser le joueur et le donjon si on lance le jeu
         if (g_menu_state == MENU_STATE_GAME && !player_initialized) {
             player_init(&player, renderer);
             player_initialized = true;
             printf("ZQSD pour bouger | Flèches pour tirer\n");
 
-            room_init(&current_room);
-            if (!room_load_random(&current_room, ROOMS_DIRECTORY)) {
-                room_fill(&current_room, TILE_FLOOR);
-            }
-            room_loaded = true;
+            // Générer le donjon
+            dungeon_generate(&dungeon);
+            game_started = true;
 
-            // Réinitialiser tous les monstres
-            for (int i = 0; i < MAX_MONSTERS; i++) {
-                monsters[i].alive = false;
-            }
-
-            // Chercher les spawns de monstre dans la salle chargée
-            int spawned_count = 0;
-            for (int r = 0; r < ROOM_ROWS; r++) {
-                for (int c = 0; c < ROOM_COLS; c++) {
-                    if (room_tile_has(&current_room, r, c, TILE_MONSTER_SPAWN)) {
-                        if (spawned_count < MAX_MONSTERS) {
-                            float spawn_x = room_rect.x + c * ROOM_CELL_SIZE + (ROOM_CELL_SIZE - 48.0f) / 2; // 48.0f = monster width estimé
-                            float spawn_y = room_rect.y + r * ROOM_CELL_SIZE + (ROOM_CELL_SIZE - 48.0f) / 2;
-                            
-                            monster_init(&monsters[spawned_count], spawn_x, spawn_y, monster_tex_up, monster_tex_down, monster_tex_left, monster_tex_right);
-                            spawned_count++;
-                        }
-
-                        // Remplacer le spawn par du sol pour ne pas le voir/bloquer
-                        room_remove_tile(&current_room, r, c, TILE_MONSTER_SPAWN);
-                        room_add_tile(&current_room, r, c, TILE_FLOOR);
-                    }
-                }
-            }
-
-            ensure_spawn_is_clear(&player, &current_room, &room_rect);
+            Room* start_room = dungeon_get_current_room(&dungeon);
+            setup_room_entities(start_room, &room_rect, monsters, MAX_MONSTERS, monster_tex_up, monster_tex_down, monster_tex_left, monster_tex_right);
+            
+            ensure_spawn_is_clear(&player, start_room, &room_rect);
         }
 
         // Mise à jour et rendu selon l'état
@@ -355,20 +360,54 @@ int main(int argc, char* argv[]) {
             menu_render(renderer, &menu);
         }
         else if (g_menu_state == MENU_STATE_GAME && player_initialized) {
-            if (!room_loaded) {
-                room_init(&current_room);
-                room_fill(&current_room, TILE_FLOOR);
-                room_loaded = true;
+            if (!game_started) {
+                // Cas de secours si init a échoué
+                dungeon_generate(&dungeon);
+                game_started = true;
             }
+
+            Room* current_room = dungeon_get_current_room(&dungeon);
 
             // Mise à jour du jeu
             const Uint8* keys = SDL_GetKeyboardState(NULL); // quelle touche pressé
-            player_update(&player, keys, delta_time, current_time, projectiles, MAX_PROJECTILES, projectile_texture, &current_room, &room_rect);
+            player_update(&player, keys, delta_time, current_time, projectiles, MAX_PROJECTILES, projectile_texture, current_room, &room_rect);
+
+            // Transition de salle
+            int room_row = 0;
+            int room_col = 0;
+            if (world_to_room_cell(&room_rect, player.x + player.w/2, player.y + player.h/2, &room_row, &room_col)) {
+                if (room_tile_has(current_room, room_row, room_col, TILE_DOOR)) {
+                    int direction = -1;
+                    // Déterminer la direction selon la position dans la grille
+                    if (room_row == 0) direction = 0; // Haut
+                    else if (room_row == ROOM_ROWS - 1) direction = 1; // Bas
+                    else if (room_col == 0) direction = 2; // Gauche
+                    else if (room_col == ROOM_COLS - 1) direction = 3; // Droite
+
+                    if (direction != -1) {
+                        printf("Change de salle vers %d\n", direction);
+                        float new_px, new_py;
+                        if (dungeon_try_move(&dungeon, direction, &new_px, &new_py)) {
+                            printf("Bien changé de salle\n");
+                            // Convertir en coordonnées écran
+                            player.x = new_px + room_rect.x;
+                            player.y = new_py + room_rect.y;
+                            
+                            // on setup les entités
+                            current_room = dungeon_get_current_room(&dungeon);
+                            setup_room_entities(current_room, &room_rect, monsters, MAX_MONSTERS, monster_tex_up, monster_tex_down, monster_tex_left, monster_tex_right);
+                            
+                            // on setup les projectiles
+                            for (int i = 0; i < MAX_PROJECTILES; i++) projectiles[i].active = false;
+                        }
+                    }
+                }
+            }
 
             // Mise à jour des monstres
             for (int i = 0; i < MAX_MONSTERS; i++) {
                 if (monsters[i].alive) {
-                    monster_follow(&monsters[i], player.x, player.y, delta_time, &current_room, &room_rect);
+                    monster_follow(&monsters[i], player.x, player.y, delta_time, current_room, &room_rect);
                 }
             }
 
@@ -410,7 +449,7 @@ int main(int argc, char* argv[]) {
             SDL_SetRenderDrawColor(renderer, 50, 50, 50, 255);
             SDL_RenderClear(renderer);
 
-            render_room(renderer, &current_room, &room_rect, tile_floor_texture, tile_rock_texture, tile_door_texture, tile_chest_texture);
+            render_room(renderer, current_room, &room_rect, tile_floor_texture, tile_rock_texture, tile_door_texture, tile_chest_texture);
 
             player_render(renderer, &player);
             

@@ -32,6 +32,7 @@ endif
 # Fichiers source
 SOURCES = src/core/main.c \
           src/core/menu.c \
+          src/levels/dungeon.c \
           src/levels/level_editor.c \
           src/levels/room.c \
           src/monsters/monster.c \

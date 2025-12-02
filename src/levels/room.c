@@ -167,7 +167,6 @@ bool room_tile_has(const Room* room, int row, int col, TileType tile) {
 
 bool room_tile_is_blocking(const Room* room, int row, int col) {
     return room_tile_has(room, row, col, TILE_ROCK) || 
-           room_tile_has(room, row, col, TILE_DOOR) || 
            room_tile_has(room, row, col, TILE_CHEST);
 }
 

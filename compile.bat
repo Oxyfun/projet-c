@@ -5,6 +5,7 @@ REM Compilation avec GCC
 gcc -o The_Binding_of_Bilo ^
     src/core/main.c ^
     src/core/menu.c ^
+    src/levels/dungeon.c ^
     src/levels/level_editor.c ^
     src/levels/room.c ^
     src/player/player.c ^
