@@ -29,9 +29,9 @@ typedef struct {
     RoomTemplate templates[MAX_TEMPLATES];
     int template_count;
     
-    // La grille du donjon contient des COPIES des salles
+    // La grille du donjon contient des copies des salles templates
     Room grid[DUNGEON_MAP_SIZE][DUNGEON_MAP_SIZE];
-    bool has_room[DUNGEON_MAP_SIZE][DUNGEON_MAP_SIZE];
+    bool has_room[DUNGEON_MAP_SIZE][DUNGEON_MAP_SIZE]; // pour pas que la génération repasse sur une salle déjà créer
     
     // Position actuelle du joueur dans la grille du donjon
     int current_map_x;
