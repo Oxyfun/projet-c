@@ -21,6 +21,7 @@ typedef struct {
     // Stats du joueur
     float speed; // Vitesse de déplacement
     int current_health;
+    int max_health;
     
     // Stats de tir
     float projectile_damage; // Dégâts des projectiles

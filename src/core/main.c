@@ -262,6 +262,10 @@ int main(int argc, char* argv[]) {
 
     SDL_Rect room_rect = create_room_rect();
     bool game_started = false;
+    
+    //game over
+    bool game_over_screen = false;
+    Uint32 game_over_start_time = 0;
 
     // Initialisation du joueur (sera initialisé quand on lance le jeu via le menu)
     Player player;
@@ -329,7 +333,7 @@ int main(int argc, char* argv[]) {
     srand((unsigned int)time(NULL));
 
     while (running) {
-        // Calcul du delta time, si ya pas ça la vitesse du joueur sera proportionnelle aux FPS ( c'est la diff entre 2 frames )
+        // Calcul du delta time, si ya pas ça la vitesse du joueur sera proportionnelle aux FPS ( c'est la diff entre 2 frames ) - calcul en seconde au lieu d'image par seconde
         Uint32 current_time_ms = SDL_GetTicks();
         float delta_time = (current_time_ms - last_time) / MS_TO_SECONDS;
         float current_time = current_time_ms / MS_TO_SECONDS;
@@ -378,6 +382,7 @@ int main(int argc, char* argv[]) {
         // Initialiser le joueur et le donjon si on lance le jeu
         if (g_menu_state == MENU_STATE_GAME && !player_initialized) {
             player_init(&player, renderer);
+            player.current_health = player.max_health;
             player_initialized = true;
             printf("ZQSD pour bouger | Flèches pour tirer\n");
 
@@ -389,6 +394,7 @@ int main(int argc, char* argv[]) {
             setup_room_entities(start_room, &room_rect, monsters, MAX_MONSTERS, monster_tex_up, monster_tex_down, monster_tex_left, monster_tex_right);
             
             ensure_spawn_is_clear(&player, start_room, &room_rect);
+
         }
 
         // Mise à jour et rendu selon l'état
@@ -396,12 +402,15 @@ int main(int argc, char* argv[]) {
             // Afficher le menu
             menu_render(renderer, &menu);
         }
-        else if (g_menu_state == MENU_STATE_GAME && player_initialized) {
+        else if (g_menu_state == MENU_STATE_GAME && player_initialized) 
+        {
             if (!game_started) {
                 // Cas de secours si init a échoué
                 dungeon_generate(&dungeon);
                 game_started = true;
             }
+
+           
 
             Room* current_room = dungeon_get_current_room(&dungeon);
 
@@ -481,7 +490,41 @@ int main(int argc, char* argv[]) {
                     }
                 }
             }
+            
+            //affiche le gameover pendant 5 sec puis revien au menu
+            if (game_over_screen) {
 
+                // fond noir transparent
+                SDL_SetRenderDrawColor(renderer, 0, 0, 0, 200);
+                SDL_Rect overlay = { 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT };
+                SDL_RenderFillRect(renderer, &overlay);
+
+                // affichage du message
+                TTF_Font* font = TTF_OpenFont("assets/fonts/Zombie.ttf", 64);
+                SDL_Color red = { 255, 0, 0, 255 };
+                SDL_Surface* surface = TTF_RenderText_Blended(font, "You Died", red);
+                SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface);
+
+                SDL_Rect pos = { WINDOW_WIDTH / 2 - surface->w / 2, WINDOW_HEIGHT / 2 - surface->h / 2, surface->w, surface->h };
+                SDL_RenderCopy(renderer, texture, NULL, &pos);
+
+                SDL_FreeSurface(surface);
+                SDL_DestroyTexture(texture);
+                TTF_CloseFont(font);
+
+                SDL_RenderPresent(renderer);
+
+                // après 5 secondes - retour menu
+                if (SDL_GetTicks() - game_over_start_time >= 2000) {
+                    g_menu_state = MENU_STATE_MAIN_MENU;
+                    player_initialized = false;
+                    game_started = false;
+                    game_over_screen = false;
+                }
+
+                continue; // empeche le jeu de continue pendant le Game Over
+            }
+            
             // Afficher le jeu
             SDL_SetRenderDrawColor(renderer, 50, 50, 50, 255);
             SDL_RenderClear(renderer);
@@ -518,6 +561,47 @@ int main(int argc, char* argv[]) {
                     projectile_render(renderer, &projectiles[i]);
                 }
             }
+
+            // Hitbox du joueur
+            SDL_Rect playerRect = {
+                (int)player.x,
+                (int)player.y,
+                (int)player.w,
+                (int)player.h
+            };
+
+            // cooldown pour éviter perte instant
+            static Uint32 lastHitTime = 0; 
+            Uint32 now = SDL_GetTicks();
+
+            for (int m = 0; m < MAX_MONSTERS; m++) {    
+                if (!monsters[m].alive) continue;
+
+                SDL_Rect monsterRect = {
+                    (int)monsters[m].x,
+                    (int)monsters[m].y,
+                    (int)monsters[m].w,
+                    (int)monsters[m].h
+                };
+
+                // collision = le joueur prend -1 hp
+                if (SDL_HasIntersection(&playerRect, &monsterRect)) {
+                    if (now - lastHitTime > 600) {  // 0.6s d'invincibilité
+                        player.current_health--;
+
+                        printf("le joueur à pris un hit ! HP = %d\n", player.current_health);
+
+                        lastHitTime = now;
+
+                        if (player.current_health <= 0) {
+                            printf("game over\n");
+                            game_over_screen = true;
+                            game_over_start_time = SDL_GetTicks();
+                        }
+                    }
+                }
+            }
+
         }
         else if (g_menu_state == MENU_STATE_LEVEL_EDITOR) {
             if (!level_editor_initialized) {
