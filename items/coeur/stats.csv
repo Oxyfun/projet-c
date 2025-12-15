@@ -1,0 +1,4 @@
+name=Coeur
+description=Augmente la vie max
+sprite=coeur.png
+max_health=1.0

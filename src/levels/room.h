@@ -15,7 +15,10 @@ typedef enum {
     TILE_ROCK = 1 << 1,
     TILE_DOOR = 1 << 2,
     TILE_CHEST = 1 << 3,
-    TILE_MONSTER_SPAWN = 1 << 4
+    TILE_MONSTER_SPAWN = 1 << 4,
+    TILE_ITEM_COEUR = 1 << 5,
+    TILE_ITEM_PIMENT = 1 << 6,
+    TILE_CHEST_OPENED = 1 << 7
 } TileType;
 
 typedef struct {
