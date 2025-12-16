@@ -10,11 +10,8 @@
 #include "../levels/dungeon.h"
 #include "../levels/level_editor.h"
 #include "../monsters/monster.h"
-<<<<<<< HEAD
 #include "../monsters/monster_projectile.h"
-=======
 #include "../items/item.h"
->>>>>>> 51943c440a6468b9fbb32fc6db4747f11bfb43d9
 #include "menu.h"
 #include <time.h>
 
@@ -79,24 +76,19 @@ static void ensure_spawn_is_clear(Player* player, Room* room, const SDL_Rect* ro
     }
 }
 
-<<<<<<< HEAD
 static void setup_room_entities(Room* room, const SDL_Rect* room_rect, Monster* monsters, int max_monsters, 
     SDL_Texture* basic_up, SDL_Texture* basic_down, SDL_Texture* basic_left, SDL_Texture* basic_right,
     SDL_Texture* tank_up, SDL_Texture* tank_down, SDL_Texture* tank_left, SDL_Texture* tank_right, SDL_Texture* shooter_left, SDL_Texture* shooter_right,
     SDL_Texture* boss_up, SDL_Texture* boss_down, SDL_Texture* boss_left, SDL_Texture* boss_right,
     SDL_Texture* shooter_projectile_texture, SDL_Texture* boss_projectile_texture) {
     // Réinitialiser tous les monstres
-=======
-static void setup_room_entities(Room* room, const SDL_Rect* room_rect, Monster* monsters, int max_monsters, SDL_Texture* t_up, SDL_Texture* t_down, SDL_Texture* t_left, SDL_Texture* t_right) {
-    // reset monstres
->>>>>>> 51943c440a6468b9fbb32fc6db4747f11bfb43d9
     for (int i = 0; i < max_monsters; i++) {
         monsters[i].alive = false;
     }
 
     if (room == NULL) return;
 
-    // chercher spawns
+    // Chercher les spawns de monstre
     int spawned_count = 0;
     for (int r = 0; r < ROOM_ROWS; r++) {
         for (int c = 0; c < ROOM_COLS; c++) {
@@ -231,7 +223,7 @@ static void render_room(SDL_Renderer* renderer, const Room* room, const SDL_Rect
 static void render_minimap(SDL_Renderer* renderer, const Dungeon* dungeon) {
     if (renderer == NULL || dungeon == NULL) return;
 
-    // transparence
+    // Activer la transparence
     SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
 
     int cell_size = 15;
@@ -245,7 +237,7 @@ static void render_minimap(SDL_Renderer* renderer, const Dungeon* dungeon) {
 
     for (int x = 0; x < DUNGEON_MAP_SIZE; x++) {
         for (int y = 0; y < DUNGEON_MAP_SIZE; y++) {
-            // dessin que si la salle existe
+            // On ne dessine que si la salle existe
             if (dungeon->has_room[x][y]) {
                 SDL_Rect cell = {
                     start_x + x * cell_size,
@@ -266,13 +258,13 @@ static void render_minimap(SDL_Renderer* renderer, const Dungeon* dungeon) {
 }
 
 int main(int argc, char* argv[]) {
-    // init SDL + verif
+    // Initialisation de SDL + vérif
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {
         printf("Erreur lors de l'initialisation de SDL: %s\n", SDL_GetError());
         exit(EXIT_FAILURE);
     }
 
-    // Initialisation de SDL_image pour PNG
+    // Initialisation de SDL_image, que pour PNG pour l'instant
     int imgFlags = IMG_INIT_PNG;
     if (!(IMG_Init(imgFlags) & imgFlags)) {
         printf("Erreur lors de l'initialisation de SDL_image: %s\n", IMG_GetError());
@@ -283,7 +275,7 @@ int main(int argc, char* argv[]) {
     //initialise sdl_ttf
     TTF_Init();
 
-    // fenetre
+    // Création de la fenêtre
     SDL_Window* window = SDL_CreateWindow(
         WINDOW_TITLE,
         SDL_WINDOWPOS_UNDEFINED,
@@ -300,7 +292,7 @@ int main(int argc, char* argv[]) {
         exit(EXIT_FAILURE);
     }
 
-    // renderer avec VSync limite FPS
+    // Création du renderer avec VSync pour limiter les FPS (car ça laggait quand on fermait le jeu)
     SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
     if (renderer == NULL) {
         printf("Erreur lors de la création du renderer: %s\n", SDL_GetError());
@@ -310,14 +302,14 @@ int main(int argc, char* argv[]) {
         exit(EXIT_FAILURE);
     }
 
-    // menu
+    // Initialisation du menu
     Menu menu;
     menu_init(&menu, renderer);
 
     LevelEditor level_editor;
     bool level_editor_initialized = false;
 
-    // donjon
+    // Donjon
     Dungeon dungeon;
     dungeon_init(&dungeon);
     dungeon_load_templates(&dungeon, ROOMS_DIRECTORY);
@@ -329,11 +321,11 @@ int main(int argc, char* argv[]) {
     bool game_over_screen = false;
     Uint32 game_over_start_time = 0;
 
-    // joueur init plus tard
+    // Initialisation du joueur (sera initialisé quand on lance le jeu via le menu)
     Player player;
     bool player_initialized = false;
 
-    // monstres
+    // Tableau de monstres
     Monster monsters[MAX_MONSTERS];
     for (int i = 0; i < MAX_MONSTERS; i++) {
         monsters[i].alive = false;
@@ -345,26 +337,22 @@ int main(int argc, char* argv[]) {
 
     TTF_Font* font = TTF_OpenFont("assets/fonts/Zombie.ttf", 24);
 
-<<<<<<< HEAD
-    // Charger la texture des projectiles du joueur
-=======
-    // texture projectiles
->>>>>>> 51943c440a6468b9fbb32fc6db4747f11bfb43d9
+    // Charger la texture des projectiles
     SDL_Texture* projectile_texture = load_texture(renderer, "assets/images/projectiles/proj.png");
     if (projectile_texture == NULL) {
         printf("Impossible de charger proj.png\n");
     }
 
-	// Charger les textures des projectiles spécifiques aux monstres
+    // Charger les textures des projectiles spécifiques
     SDL_Texture* projectile_shooter_texture = load_texture(renderer, "assets/images/projectiles/proj_shooter.png");
     if (projectile_shooter_texture == NULL) {
         printf("Impossible de charger proj_shooter.png\n");
     }
+
     SDL_Texture* projectile_boss_texture = load_texture(renderer, "assets/images/projectiles/proj_boss.png");
     if (projectile_boss_texture == NULL) {
         printf("Impossible de charger proj_boss.png\n");
     }
-
 
     SDL_Texture* tile_floor_texture = load_texture(renderer, "assets/images/decor/Sprite-sol.png");
     if (tile_floor_texture == NULL) {
@@ -386,24 +374,16 @@ int main(int argc, char* argv[]) {
         printf("Impossible de charger Sprite-coffre.png\n");
     }
 
-<<<<<<< HEAD
-    // Chargement des textures des monstres BASIC
-    SDL_Texture* monster_basic_up = load_texture(renderer, "assets/images/monstre/basique/basique_haut.png");
-    SDL_Texture* monster_basic_down = load_texture(renderer, "assets/images/monstre/basique/basique_bas.png");
-    SDL_Texture* monster_basic_left = load_texture(renderer, "assets/images/monstre/basique/basique_gauche.png");
-    SDL_Texture* monster_basic_right = load_texture(renderer, "assets/images/monstre/basique/basique_droite.png");
-=======
     SDL_Texture* tile_chest_opened_texture = load_texture(renderer, "assets/images/decor/Sprite-coffre-ouvert.png");
     if (tile_chest_opened_texture == NULL) {
         printf("Impossible de charger Sprite-coffre-ouvert.png\n");
     }
 
-    // textures monstres
-    SDL_Texture* monster_tex_up = load_texture(renderer, "assets/images/monstre/monstre_haut.png");
-    SDL_Texture* monster_tex_down = load_texture(renderer, "assets/images/monstre/monstre_bas.png");
-    SDL_Texture* monster_tex_left = load_texture(renderer, "assets/images/monstre/monstre_gauche.png");
-    SDL_Texture* monster_tex_right = load_texture(renderer, "assets/images/monstre/monstre_droite.png");
->>>>>>> 51943c440a6468b9fbb32fc6db4747f11bfb43d9
+    // Chargement des textures des monstres BASIC
+    SDL_Texture* monster_basic_up = load_texture(renderer, "assets/images/monstre/basique/basique_haut.png");
+    SDL_Texture* monster_basic_down = load_texture(renderer, "assets/images/monstre/basique/basique_bas.png");
+    SDL_Texture* monster_basic_left = load_texture(renderer, "assets/images/monstre/basique/basique_gauche.png");
+    SDL_Texture* monster_basic_right = load_texture(renderer, "assets/images/monstre/basique/basique_droite.png");
 
     // Chargement des textures des monstres TANK
     SDL_Texture* monster_tank_up = load_texture(renderer, "assets/images/monstre/tank/tank_haut.png");
@@ -436,15 +416,14 @@ int main(int argc, char* argv[]) {
         printf("Erreur: impossible de creer l'item manager\n");
     }
 
-    // projectiles
+    // Initialisation des projectiles
     Projectile projectiles[MAX_PROJECTILES];
-    
-    // desactive tous les projectiles au debut
+
+    // Initialiser tous les projectiles comme inactifs
     for (int i = 0; i < MAX_PROJECTILES; i++) {
         projectiles[i].active = false;
     }
 
-<<<<<<< HEAD
     // Initialisation des projectiles des monstres
     MonsterProjectile monster_projectiles[MAX_PROJECTILES];
     for (int i = 0; i < MAX_PROJECTILES; i++) {
@@ -455,25 +434,22 @@ int main(int argc, char* argv[]) {
     bool last_menu_state_was_game = false;
 
     // Variables pour le delta time
-=======
-    // delta time
->>>>>>> 51943c440a6468b9fbb32fc6db4747f11bfb43d9
     Uint32 last_time = SDL_GetTicks();
 
-    // boucle principale
+    // Boucle principale
     bool running = true;
     SDL_Event event;
 
     srand((unsigned int)time(NULL));
 
     while (running) {
-        // Calcul du delta time entre frames pour pas que vitesse depend des FPS
+        // Calcul du delta time, si ya pas ça la vitesse du joueur sera proportionnelle aux FPS ( c'est la diff entre 2 frames ) - calcul en seconde au lieu d'image par seconde
         Uint32 current_time_ms = SDL_GetTicks();
         float delta_time = (current_time_ms - last_time) / MS_TO_SECONDS;
         float current_time = current_time_ms / MS_TO_SECONDS;
         last_time = current_time_ms;
 
-        // events
+        // Gestion des événements
         while (SDL_PollEvent(&event)) {
             // Événements globaux
             if (event.type == SDL_QUIT) {
@@ -490,7 +466,7 @@ int main(int argc, char* argv[]) {
                 continue;
             }
 
-            // events menu
+            // Événements du menu
             if (g_menu_state == MENU_STATE_MAIN_MENU) {
                 menu_update(&menu, &event);
             }
@@ -508,12 +484,11 @@ int main(int argc, char* argv[]) {
             level_editor_initialized = false;
         }
 
-        // quitter
+        // Vérifier si on doit quitter
         if (g_menu_state == MENU_STATE_QUIT) {
             running = false;
         }
 
-<<<<<<< HEAD
         // Nettoyer les projectiles si on retourne au menu depuis le jeu
         if (g_menu_state == MENU_STATE_MAIN_MENU && last_menu_state_was_game) {
             for (int i = 0; i < MAX_PROJECTILES; i++) {
@@ -529,16 +504,13 @@ int main(int argc, char* argv[]) {
         }
 
         // Initialiser le joueur et le donjon si on lance le jeu
-=======
-        // init joueur + donjon au debut du jeu
->>>>>>> 51943c440a6468b9fbb32fc6db4747f11bfb43d9
         if (g_menu_state == MENU_STATE_GAME && !player_initialized) {
             player_init(&player, renderer);
             player.current_health = player.max_health;
             player_initialized = true;
             printf("ZQSD pour bouger | Flèches pour tirer\n");
 
-            // generation donjon
+            // Générer le donjon
             dungeon_generate(&dungeon);
             game_started = true;
 
@@ -553,12 +525,11 @@ int main(int argc, char* argv[]) {
 
             // Initialiser le compteur d'items
             room_item_count = 0;
-
         }
 
-        // update + rendu selon etat
+        // Mise à jour et rendu selon l'état
         if (g_menu_state == MENU_STATE_MAIN_MENU) {
-            // rendu menu
+            // Afficher le menu
             menu_render(renderer, &menu);
         }
         else if (g_menu_state == MENU_STATE_GAME && player_initialized) 
@@ -573,7 +544,7 @@ int main(int argc, char* argv[]) {
 
             Room* current_room = dungeon_get_current_room(&dungeon);
 
-            // update jeu
+            // Mise à jour du jeu
             const Uint8* keys = SDL_GetKeyboardState(NULL); // quelle touche pressé
             player_update(&player, keys, delta_time, current_time, projectiles, MAX_PROJECTILES, projectile_texture, current_room, &room_rect);
 
@@ -606,24 +577,14 @@ int main(int argc, char* argv[]) {
                                 monster_boss_up, monster_boss_down, monster_boss_left, monster_boss_right,
                                 projectile_shooter_texture, projectile_boss_texture);
                             
-                            // on setup les projectiles
-<<<<<<< HEAD
-                            for (int i = 0; i < MAX_PROJECTILES; i++) {
-                                projectiles[i].active = false;
-                                monster_projectiles[i].active = false;
-                            }
-=======
-                            for (int i = 0; i < MAX_PROJECTILES; i++) projectiles[i].active = false;
 
                             // Reinitialiser les items de la salle
                             room_item_count = 0;
->>>>>>> 51943c440a6468b9fbb32fc6db4747f11bfb43d9
                         }
                     }
                 }
             }
 
-<<<<<<< HEAD
             // Mise à jour des monstres (uniquement si pas de game over)
             if (!game_over_screen) {
                 for (int i = 0; i < MAX_MONSTERS; i++) {
@@ -665,16 +626,10 @@ int main(int argc, char* argv[]) {
                             }
                         }
                     }
-=======
-            // update monstres
-            for (int i = 0; i < MAX_MONSTERS; i++) {
-                if (monsters[i].alive) {
-                    monster_follow(&monsters[i], player.x, player.y, delta_time, current_room, &room_rect);
->>>>>>> 51943c440a6468b9fbb32fc6db4747f11bfb43d9
                 }
             }
 
-            // update projectiles
+            // Mise à jour des projectiles
             for (int i = 0; i < MAX_PROJECTILES; i++) {
                 if (projectiles[i].active) {
                     projectile_update(&projectiles[i], delta_time);
@@ -686,7 +641,6 @@ int main(int argc, char* argv[]) {
                         (int)projectiles[i].size
                     };
 
-<<<<<<< HEAD
                     // Vérifier collision avec CHAQUE monstre (seulement si pas game over)
                     if (!game_over_screen) {
                         for (int m = 0; m < MAX_MONSTERS; m++) {
@@ -700,149 +654,17 @@ int main(int argc, char* argv[]) {
 
                                 if (SDL_HasIntersection(&projRect, &monsterRect)) {
                                     projectiles[i].active = false;
-                                    monsters[m].current_health -= 1;
+                                    monsters[m].current_health -= player.projectile_damage;
                                     if (monsters[m].current_health <= 0) {
                                         monsters[m].alive = false;
                                     }
-=======
-                    // verif collision avec tous les monstres
-                    for (int m = 0; m < MAX_MONSTERS; m++) {
-                        if (monsters[m].alive && projectiles[i].active) {
-                            SDL_Rect monsterRect = {
-                                (int)monsters[m].x,
-                                (int)monsters[m].y,
-                                (int)monsters[m].w,
-                                (int)monsters[m].h
-                            };
-
-                            if (SDL_HasIntersection(&projRect, &monsterRect)) {
-                                projectiles[i].active = false;
-                                monsters[m].current_health -= player.projectile_damage;
-                                if (monsters[m].current_health <= 0) {
-                                    monsters[m].alive = false;
->>>>>>> 51943c440a6468b9fbb32fc6db4747f11bfb43d9
                                 }
                             }
                         }
                     }
                 }
             }
-            
-            //affiche le gameover pendant 5 sec puis revien au menu
-            if (game_over_screen) {
 
-                // fond noir transparent
-                SDL_SetRenderDrawColor(renderer, 0, 0, 0, 200);
-                SDL_Rect overlay = { 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT };
-                SDL_RenderFillRect(renderer, &overlay);
-
-                // affichage du message
-                TTF_Font* font = TTF_OpenFont("assets/fonts/Zombie.ttf", 64);
-                SDL_Color red = { 255, 0, 0, 255 };
-                SDL_Surface* surface = TTF_RenderText_Blended(font, "You Died", red);
-                SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface);
-
-                SDL_Rect pos = { WINDOW_WIDTH / 2 - surface->w / 2, WINDOW_HEIGHT / 2 - surface->h / 2, surface->w, surface->h };
-                SDL_RenderCopy(renderer, texture, NULL, &pos);
-
-                SDL_FreeSurface(surface);
-                SDL_DestroyTexture(texture);
-                TTF_CloseFont(font);
-
-                SDL_RenderPresent(renderer);
-
-                // après 5 secondes - retour menu
-                if (SDL_GetTicks() - game_over_start_time >= 2000) {
-                    g_menu_state = MENU_STATE_MAIN_MENU;
-                    player_initialized = false;
-                    game_started = false;
-                    game_over_screen = false;
-                }
-
-                continue; // empeche le jeu de continue pendant le Game Over
-            }
-            
-            // rendu jeu
-            SDL_SetRenderDrawColor(renderer, 50, 50, 50, 255);
-            SDL_RenderClear(renderer);
-
-            render_room(renderer, current_room, &room_rect, tile_floor_texture, tile_rock_texture, tile_door_texture, tile_chest_texture, tile_chest_opened_texture);
-
-            // rendu items
-            for (int i = 0; i < room_item_count; i++) {
-                item_render(renderer, &room_items[i]);
-            }
-
-            player_render(renderer, &player);
-            
-            for (int i = 0; i < MAX_MONSTERS; i++) {
-                if (monsters[i].alive) {
-                    monster_render(renderer, &monsters[i]);
-                }
-            }
-
-            // affichage stats joueur en haut a gauche
-            SDL_Color white = { 255, 255, 255, 255 };
-            int y_offset = 10;
-            
-            char hp_text[64];
-            sprintf(hp_text, "HP: %d/%d", player.current_health, player.max_health);
-            SDL_Surface* hp_surface = TTF_RenderText_Blended(font, hp_text, white);
-            SDL_Texture* hp_texture = SDL_CreateTextureFromSurface(renderer, hp_surface);
-            SDL_Rect hp_rect = { 20, y_offset, hp_surface->w, hp_surface->h };
-            SDL_RenderCopy(renderer, hp_texture, NULL, &hp_rect);
-            SDL_FreeSurface(hp_surface);
-            SDL_DestroyTexture(hp_texture);
-            y_offset += 30;
-            
-            char dmg_text[64];
-            sprintf(dmg_text, "Degats: %.1f", player.projectile_damage);
-            SDL_Surface* dmg_surface = TTF_RenderText_Blended(font, dmg_text, white);
-            SDL_Texture* dmg_texture = SDL_CreateTextureFromSurface(renderer, dmg_surface);
-            SDL_Rect dmg_rect = { 20, y_offset, dmg_surface->w, dmg_surface->h };
-            SDL_RenderCopy(renderer, dmg_texture, NULL, &dmg_rect);
-            SDL_FreeSurface(dmg_surface);
-            SDL_DestroyTexture(dmg_texture);
-            y_offset += 30;
-            
-            char speed_text[64];
-            sprintf(speed_text, "Vitesse: %.1f", player.speed);
-            SDL_Surface* speed_surface = TTF_RenderText_Blended(font, speed_text, white);
-            SDL_Texture* speed_texture = SDL_CreateTextureFromSurface(renderer, speed_surface);
-            SDL_Rect speed_rect = { 20, y_offset, speed_surface->w, speed_surface->h };
-            SDL_RenderCopy(renderer, speed_texture, NULL, &speed_rect);
-            SDL_FreeSurface(speed_surface);
-            SDL_DestroyTexture(speed_texture);
-            y_offset += 30;
-            
-            char fire_text[64];
-            sprintf(fire_text, "Cadence: %.2f", player.fire_rate);
-            SDL_Surface* fire_surface = TTF_RenderText_Blended(font, fire_text, white);
-            SDL_Texture* fire_texture = SDL_CreateTextureFromSurface(renderer, fire_surface);
-            SDL_Rect fire_rect = { 20, y_offset, fire_surface->w, fire_surface->h };
-            SDL_RenderCopy(renderer, fire_texture, NULL, &fire_rect);
-            SDL_FreeSurface(fire_surface);
-            SDL_DestroyTexture(fire_texture);
-
-            // minimap
-            render_minimap(renderer, &dungeon);
-
-            for (int i = 0; i < MAX_PROJECTILES; i++) {
-                if (projectiles[i].active) {
-                    projectile_render(renderer, &projectiles[i]);
-                }
-            }
-
-<<<<<<< HEAD
-            // Rendu des projectiles des monstres
-            for (int i = 0; i < MAX_PROJECTILES; i++) {
-                if (monster_projectiles[i].active) {
-                    monster_projectile_render(renderer, &monster_projectiles[i]);
-                }
-            }
-
-            // Hitbox du joueur
-=======
             // collision joueur + items
             for (int i = 0; i < room_item_count; i++) {
                 if (item_check_collision(&room_items[i], &player)) {
@@ -919,9 +741,120 @@ int main(int argc, char* argv[]) {
                     }
                 }
             }
+            
+            //affiche le gameover pendant 5 sec puis revien au menu
+            if (game_over_screen) {
 
-            // hitbox joueur
->>>>>>> 51943c440a6468b9fbb32fc6db4747f11bfb43d9
+                // fond noir transparent
+                SDL_SetRenderDrawColor(renderer, 0, 0, 0, 200);
+                SDL_Rect overlay = { 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT };
+                SDL_RenderFillRect(renderer, &overlay);
+
+                // affichage du message
+                TTF_Font* font = TTF_OpenFont("assets/fonts/Zombie.ttf", 64);
+                SDL_Color red = { 255, 0, 0, 255 };
+                SDL_Surface* surface = TTF_RenderText_Blended(font, "You Died", red);
+                SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface);
+
+                SDL_Rect pos = { WINDOW_WIDTH / 2 - surface->w / 2, WINDOW_HEIGHT / 2 - surface->h / 2, surface->w, surface->h };
+                SDL_RenderCopy(renderer, texture, NULL, &pos);
+
+                SDL_FreeSurface(surface);
+                SDL_DestroyTexture(texture);
+                TTF_CloseFont(font);
+
+                SDL_RenderPresent(renderer);
+
+                // après 5 secondes - retour menu
+                if (SDL_GetTicks() - game_over_start_time >= 2000) {
+                    g_menu_state = MENU_STATE_MAIN_MENU;
+                    player_initialized = false;
+                    game_started = false;
+                    game_over_screen = false;
+                }
+
+                continue; // empeche le jeu de continue pendant le Game Over
+            }
+            
+            // Afficher le jeu
+            SDL_SetRenderDrawColor(renderer, 50, 50, 50, 255);
+            SDL_RenderClear(renderer);
+
+            render_room(renderer, current_room, &room_rect, tile_floor_texture, tile_rock_texture, tile_door_texture, tile_chest_texture, tile_chest_opened_texture);
+
+            // rendu items
+            for (int i = 0; i < room_item_count; i++) {
+                item_render(renderer, &room_items[i]);
+            }
+
+            player_render(renderer, &player);
+            
+            for (int i = 0; i < MAX_MONSTERS; i++) {
+                if (monsters[i].alive) {
+                    monster_render(renderer, &monsters[i]);
+                }
+            }
+
+            // affichage stats joueur en haut a gauche
+            SDL_Color white = { 255, 255, 255, 255 };
+            int y_offset = 10;
+            
+            char hp_text[64];
+            sprintf(hp_text, "HP: %d/%d", player.current_health, player.max_health);
+            SDL_Surface* hp_surface = TTF_RenderText_Blended(font, hp_text, white);
+            SDL_Texture* hp_texture = SDL_CreateTextureFromSurface(renderer, hp_surface);
+            SDL_Rect hp_rect = { 20, y_offset, hp_surface->w, hp_surface->h };
+            SDL_RenderCopy(renderer, hp_texture, NULL, &hp_rect);
+            SDL_FreeSurface(hp_surface);
+            SDL_DestroyTexture(hp_texture);
+            y_offset += 30;
+            
+            char dmg_text[64];
+            sprintf(dmg_text, "Degats: %.1f", player.projectile_damage);
+            SDL_Surface* dmg_surface = TTF_RenderText_Blended(font, dmg_text, white);
+            SDL_Texture* dmg_texture = SDL_CreateTextureFromSurface(renderer, dmg_surface);
+            SDL_Rect dmg_rect = { 20, y_offset, dmg_surface->w, dmg_surface->h };
+            SDL_RenderCopy(renderer, dmg_texture, NULL, &dmg_rect);
+            SDL_FreeSurface(dmg_surface);
+            SDL_DestroyTexture(dmg_texture);
+            y_offset += 30;
+            
+            char speed_text[64];
+            sprintf(speed_text, "Vitesse: %.1f", player.speed);
+            SDL_Surface* speed_surface = TTF_RenderText_Blended(font, speed_text, white);
+            SDL_Texture* speed_texture = SDL_CreateTextureFromSurface(renderer, speed_surface);
+            SDL_Rect speed_rect = { 20, y_offset, speed_surface->w, speed_surface->h };
+            SDL_RenderCopy(renderer, speed_texture, NULL, &speed_rect);
+            SDL_FreeSurface(speed_surface);
+            SDL_DestroyTexture(speed_texture);
+            y_offset += 30;
+            
+            char fire_text[64];
+            sprintf(fire_text, "Cadence: %.2f", player.fire_rate);
+            SDL_Surface* fire_surface = TTF_RenderText_Blended(font, fire_text, white);
+            SDL_Texture* fire_texture = SDL_CreateTextureFromSurface(renderer, fire_surface);
+            SDL_Rect fire_rect = { 20, y_offset, fire_surface->w, fire_surface->h };
+            SDL_RenderCopy(renderer, fire_texture, NULL, &fire_rect);
+            SDL_FreeSurface(fire_surface);
+            SDL_DestroyTexture(fire_texture);
+
+            // Afficher la minimap
+            render_minimap(renderer, &dungeon);
+
+            for (int i = 0; i < MAX_PROJECTILES; i++) {
+                if (projectiles[i].active) {
+                    projectile_render(renderer, &projectiles[i]);
+                }
+            }
+
+            // Rendu des projectiles des monstres
+            for (int i = 0; i < MAX_PROJECTILES; i++) {
+                if (monster_projectiles[i].active) {
+                    monster_projectile_render(renderer, &monster_projectiles[i]);
+                }
+            }
+
+            // Hitbox du joueur
             SDL_Rect playerRect = {
                 (int)player.x,
                 (int)player.y,
@@ -976,7 +909,7 @@ int main(int argc, char* argv[]) {
 
         SDL_RenderPresent(renderer);
 
-        // backup si VSync marche pas
+        // Backup si VSync ne marche pas
         SDL_Delay(1);
     }
 
@@ -984,14 +917,14 @@ int main(int argc, char* argv[]) {
         level_editor_cleanup(&level_editor);
     }
 
-    // cleanup
+    // Nettoyage
     menu_cleanup(&menu);
 
     if (player_initialized) {
         player_cleanup(&player);
     }
 
-    // cleanup des projectiles
+    // Nettoyage des projectiles
     for (int i = 0; i < MAX_PROJECTILES; i++) {
         projectile_cleanup(&projectiles[i]);
     }
@@ -1021,12 +954,11 @@ int main(int argc, char* argv[]) {
         SDL_DestroyTexture(tile_chest_opened_texture);
     }
 
-    // detruit texture projectiles
+    // Détruire la texture partagée des projectiles
     if (projectile_texture != NULL) {
         SDL_DestroyTexture(projectile_texture);
     }
 
-<<<<<<< HEAD
     // Détruire les textures spécifiques des projectiles
     if (projectile_shooter_texture != NULL) {
         SDL_DestroyTexture(projectile_shooter_texture);
@@ -1057,15 +989,6 @@ int main(int argc, char* argv[]) {
     if (monster_boss_down != NULL) SDL_DestroyTexture(monster_boss_down);
     if (monster_boss_left != NULL) SDL_DestroyTexture(monster_boss_left);
     if (monster_boss_right != NULL) SDL_DestroyTexture(monster_boss_right);
-=======
-    // detruit textures monstres
-    if (monster_tex_up != NULL) SDL_DestroyTexture(monster_tex_up);
-    if (monster_tex_down != NULL) SDL_DestroyTexture(monster_tex_down);
-    if (monster_tex_left != NULL) SDL_DestroyTexture(monster_tex_left);
-    if (monster_tex_right != NULL) SDL_DestroyTexture(monster_tex_right);
->>>>>>> 51943c440a6468b9fbb32fc6db4747f11bfb43d9
-
-    // items nettoyes via item_manager
 
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);

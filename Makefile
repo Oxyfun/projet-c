@@ -1,4 +1,4 @@
-ifeq ($(OS),Windows_NT)
+﻿ifeq ($(OS),Windows_NT)
     detected_OS := Windows
 else
     detected_OS := $(shell uname -s)
@@ -27,6 +27,7 @@ SOURCES = src/core/main.c \
           src/levels/level_editor.c \
           src/levels/room.c \
           src/monsters/monster.c \
+          src/monsters/monster_projectile.c \
           src/player/player.c \
           src/player/projectile.c \
           src/utils/assets.c

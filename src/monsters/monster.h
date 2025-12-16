@@ -36,6 +36,9 @@ typedef struct {
 	SDL_Texture* texture_left;
 	SDL_Texture* texture_right;
 	SDL_Texture* current_texture;
+    
+    // Texture spécifique pour le projectile de ce monstre
+    SDL_Texture* projectile_texture;
 
 	int direction; // 0=bas, 1=haut, 2=gauche, 3=droite
 
@@ -43,7 +46,6 @@ typedef struct {
 	float last_shot_time;
 	float fire_interval;
 	float projectile_speed;
-	SDL_Texture* projectile_texture;  // Texture spécifique des projectiles
 } Monster;
 
 void monster_init(Monster* m, float x, float y, MonsterType type, SDL_Texture* tex_up, SDL_Texture* tex_down, SDL_Texture* tex_left, SDL_Texture* tex_right, SDL_Texture* projectile_tex);

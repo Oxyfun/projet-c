@@ -1,3 +1,4 @@
+﻿#define _CRT_SECURE_NO_WARNINGS
 #include "item.h"
 #include "../utils/assets.h"
 #include <stdio.h>

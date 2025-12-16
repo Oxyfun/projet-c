@@ -85,6 +85,7 @@ void room_set_tile(Room* room, int row, int col, TileType tile) {
     if ((value & TILE_CHEST) != 0) {
         value |= TILE_FLOOR;
     }
+
     if ((value & (TILE_MONSTER_SPAWN_BASIC | TILE_MONSTER_SPAWN_TANK | TILE_MONSTER_SPAWN_SHOOTER | TILE_MONSTER_SPAWN_BOSS)) != 0) {
         value |= TILE_FLOOR;
     }
@@ -175,9 +176,6 @@ void room_remove_tile(Room* room, int row, int col, TileType tile) {
         current |= TILE_FLOOR;
     }
     if ((current & TILE_CHEST_OPENED) != 0) {
-        current |= TILE_FLOOR;
-    }
-    if ((current & TILE_MONSTER_SPAWN) != 0) {
         current |= TILE_FLOOR;
     }
     if ((current & TILE_ITEM_COEUR) != 0) {
