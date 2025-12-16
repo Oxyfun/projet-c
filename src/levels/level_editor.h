@@ -1,4 +1,4 @@
-#ifndef LEVEL_EDITOR_H
+﻿#ifndef LEVEL_EDITOR_H
 #define LEVEL_EDITOR_H
 
 #include "../utils/sdl_common.h"
@@ -12,7 +12,10 @@ typedef struct {
     SDL_Texture* texture_rock;
     SDL_Texture* texture_door;
     SDL_Texture* texture_chest;
-    SDL_Texture* texture_spawn;
+    SDL_Texture* texture_spawn_basic;
+    SDL_Texture* texture_spawn_tank;
+    SDL_Texture* texture_spawn_shooter;
+    SDL_Texture* texture_spawn_boss;
     SDL_Rect grid_rect;
     int hovered_row;
     int hovered_col;

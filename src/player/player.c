@@ -16,7 +16,7 @@ void player_init(Player* p, SDL_Renderer* renderer) {
     
     // Stats du joueur
     p->speed = 200.0f; // Vitesse de déplacement
-    p->max_health = 5;
+    p->max_health = 999;
     
     // Stats de tir
     p->projectile_damage = 10.0f; // Dégâts des projectiles

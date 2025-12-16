@@ -1,4 +1,4 @@
-#ifndef ROOM_H
+﻿#ifndef ROOM_H
 #define ROOM_H
 
 #include <stdbool.h>
@@ -15,7 +15,12 @@ typedef enum {
     TILE_ROCK = 1 << 1,
     TILE_DOOR = 1 << 2,
     TILE_CHEST = 1 << 3,
-    TILE_MONSTER_SPAWN = 1 << 4
+    TILE_MONSTER_SPAWN_BASIC = 1 << 4,
+    TILE_MONSTER_SPAWN_TANK = 1 << 5,
+    TILE_MONSTER_SPAWN_SHOOTER = 1 << 6,
+    TILE_MONSTER_SPAWN_BOSS = 1 << 7,
+    // Alias pour rétro-compatibilité (défaut vers basic)
+    TILE_MONSTER_SPAWN = TILE_MONSTER_SPAWN_BASIC
 } TileType;
 
 typedef struct {
@@ -38,5 +43,3 @@ bool room_load_random(Room* room, const char* directory);
 int room_collect_csv_files(const char* directory, char files[][400], int max_files);
 
 #endif
-
-

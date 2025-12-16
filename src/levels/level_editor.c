@@ -1,4 +1,4 @@
-#include "level_editor.h"
+﻿#include "level_editor.h"
 #include "../utils/assets.h"
 #include "../core/menu.h"
 #include <stdio.h>
@@ -145,11 +145,16 @@ void level_editor_init(LevelEditor* editor, SDL_Renderer* renderer) {
     editor->texture_rock = load_texture(renderer, "assets/images/decor/Sprite-rock.png");
     editor->texture_door = load_texture(renderer, "assets/images/decor/Sprite-porte.png");
     editor->texture_chest = load_texture(renderer, "assets/images/decor/Sprite-coffre.png");
-    editor->texture_spawn = load_texture(renderer, "assets/images/monstre/monstre_bas.png");
+    editor->texture_spawn_basic = load_texture(renderer, "assets/images/monstre/basique/basique_bas.png");
+    editor->texture_spawn_tank = load_texture(renderer, "assets/images/monstre/tank/tank_bas.png");
+    editor->texture_spawn_shooter = load_texture(renderer, "assets/images/monstre/shooter/shooter_droite.png");
+    editor->texture_spawn_boss = load_texture(renderer, "assets/images/monstre/boss/boss_bas.png");
 
     printf("=== Editeur de niveaux actif ===\n");
     printf("Clic gauche: poser | Clic droit: effacer\n");
-    printf("Touches: 1 sol | 2 rocher | 3 porte | 4 coffre | 5 spawn monstre | 0 vide | C vider | S sauver | L charger aleatoire | ESC retour menu\n");
+    printf("Touches: 1 sol | 2 rocher | 3 porte | 4 coffre\n");
+    printf("         I basique | O tank | P shooter | B boss\n");
+    printf("         0 vide | C vider | S sauver | L charger aleatoire | ESC retour menu\n");
 }
 
 void level_editor_handle_event(LevelEditor* editor, SDL_Event* event) {
@@ -194,8 +199,17 @@ void level_editor_handle_event(LevelEditor* editor, SDL_Event* event) {
                 case SDLK_4:
                     editor->selected_tile = TILE_CHEST;
                     break;
-                case SDLK_5:
-                    editor->selected_tile = TILE_MONSTER_SPAWN;
+                case SDLK_i:
+                    editor->selected_tile = TILE_MONSTER_SPAWN_BASIC;
+                    break;
+                case SDLK_o:
+                    editor->selected_tile = TILE_MONSTER_SPAWN_TANK;
+                    break;
+                case SDLK_p:
+                    editor->selected_tile = TILE_MONSTER_SPAWN_SHOOTER;
+                    break;
+                case SDLK_b:
+                    editor->selected_tile = TILE_MONSTER_SPAWN_BOSS;
                     break;
                 case SDLK_c:
                     level_editor_clear(editor);
@@ -260,9 +274,39 @@ static void level_editor_render_selected_tile(LevelEditor* editor, SDL_Renderer*
             }
         }
 
-        if ((editor->selected_tile & TILE_MONSTER_SPAWN) != 0) {
-            if (editor->texture_spawn != NULL) {
-                SDL_RenderCopy(renderer, editor->texture_spawn, NULL, &inner);
+        if ((editor->selected_tile & TILE_MONSTER_SPAWN_BASIC) != 0) {
+            if (editor->texture_spawn_basic != NULL) {
+                SDL_RenderCopy(renderer, editor->texture_spawn_basic, NULL, &inner);
+            }
+        }
+
+        if ((editor->selected_tile & TILE_MONSTER_SPAWN_TANK) != 0) {
+            if (editor->texture_spawn_tank != NULL) {
+                // If a specific texture is set for tank, use it; otherwise draw red square
+                SDL_RenderCopy(renderer, editor->texture_spawn_tank, NULL, &inner);
+            } else {
+                SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
+                SDL_RenderFillRect(renderer, &inner);
+            }
+        }
+
+        if ((editor->selected_tile & TILE_MONSTER_SPAWN_SHOOTER) != 0) {
+            if (editor->texture_spawn_shooter != NULL) {
+                SDL_RenderCopy(renderer, editor->texture_spawn_shooter, NULL, &inner);
+            } else {
+                // Shooter preview: green square
+                SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);
+                SDL_RenderFillRect(renderer, &inner);
+            }
+        }
+
+        if ((editor->selected_tile & TILE_MONSTER_SPAWN_BOSS) != 0) {
+            if (editor->texture_spawn_boss != NULL) {
+                SDL_RenderCopy(renderer, editor->texture_spawn_boss, NULL, &inner);
+            } else {
+                // Boss preview: purple square
+                SDL_SetRenderDrawColor(renderer, 128, 0, 255, 255);
+                SDL_RenderFillRect(renderer, &inner);
             }
         }
     }
@@ -270,6 +314,7 @@ static void level_editor_render_selected_tile(LevelEditor* editor, SDL_Renderer*
     SDL_SetRenderDrawColor(renderer, 200, 200, 200, 255);
     SDL_RenderDrawRect(renderer, &preview);
 }
+
 
 void level_editor_render(LevelEditor* editor, SDL_Renderer* renderer) {
     if (editor == NULL) {
@@ -292,7 +337,10 @@ void level_editor_render(LevelEditor* editor, SDL_Renderer* renderer) {
             bool has_rock = room_tile_has(&editor->room, r, c, TILE_ROCK);
             bool has_door = room_tile_has(&editor->room, r, c, TILE_DOOR);
             bool has_chest = room_tile_has(&editor->room, r, c, TILE_CHEST);
-            bool has_spawn = room_tile_has(&editor->room, r, c, TILE_MONSTER_SPAWN);
+            bool has_spawn_basic = room_tile_has(&editor->room, r, c, TILE_MONSTER_SPAWN_BASIC);
+            bool has_spawn_tank = room_tile_has(&editor->room, r, c, TILE_MONSTER_SPAWN_TANK);
+            bool has_spawn_shooter = room_tile_has(&editor->room, r, c, TILE_MONSTER_SPAWN_SHOOTER);
+            bool has_spawn_boss = room_tile_has(&editor->room, r, c, TILE_MONSTER_SPAWN_BOSS);
 
             if (has_floor) {
                 if (editor->texture_floor != NULL) {
@@ -301,7 +349,7 @@ void level_editor_render(LevelEditor* editor, SDL_Renderer* renderer) {
                     SDL_SetRenderDrawColor(renderer, 90, 90, 90, 255);
                     SDL_RenderFillRect(renderer, &cell);
                 }
-            } else if (!has_rock && !has_door && !has_chest && !has_spawn) {
+            } else if (!has_rock && !has_door && !has_chest && !has_spawn_basic && !has_spawn_tank && !has_spawn_shooter && !has_spawn_boss) {
                 SDL_SetRenderDrawColor(renderer, 40, 40, 60, 255);
                 SDL_RenderFillRect(renderer, &cell);
             }
@@ -333,12 +381,41 @@ void level_editor_render(LevelEditor* editor, SDL_Renderer* renderer) {
                 }
             }
 
-            if (has_spawn) {
-                if (editor->texture_spawn != NULL) {
-                    // Petit offset pour centrer si besoin, ou rendu direct
-                    SDL_RenderCopy(renderer, editor->texture_spawn, NULL, &cell);
+            if (has_spawn_basic) {
+                if (editor->texture_spawn_basic != NULL) {
+                    SDL_RenderCopy(renderer, editor->texture_spawn_basic, NULL, &cell);
                 } else {
                     SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
+                    SDL_RenderFillRect(renderer, &cell);
+                }
+            }
+
+            if (has_spawn_tank) {
+                if (editor->texture_spawn_tank != NULL) {
+                    SDL_RenderCopy(renderer, editor->texture_spawn_tank, NULL, &cell);
+                } else {
+                    // Use same red square as preview for tank when no texture is provided
+                    SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
+                    SDL_RenderFillRect(renderer, &cell);
+                }
+            }
+
+            if (has_spawn_shooter) {
+                if (editor->texture_spawn_shooter != NULL) {
+                    SDL_RenderCopy(renderer, editor->texture_spawn_shooter, NULL, &cell);
+                } else {
+                    // Shooter cell: green square (matching preview)
+                    SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);
+                    SDL_RenderFillRect(renderer, &cell);
+                }
+            }
+
+            if (has_spawn_boss) {
+                if (editor->texture_spawn_boss != NULL) {
+                    SDL_RenderCopy(renderer, editor->texture_spawn_boss, NULL, &cell);
+                } else {
+                    // Boss cell: purple square (matching preview)
+                    SDL_SetRenderDrawColor(renderer, 128, 0, 255, 255);
                     SDL_RenderFillRect(renderer, &cell);
                 }
             }
@@ -388,9 +465,24 @@ void level_editor_cleanup(LevelEditor* editor) {
         editor->texture_chest = NULL;
     }
 
-    if (editor->texture_spawn != NULL) {
-        SDL_DestroyTexture(editor->texture_spawn);
-        editor->texture_spawn = NULL;
+    if (editor->texture_spawn_basic != NULL) {
+        SDL_DestroyTexture(editor->texture_spawn_basic);
+        editor->texture_spawn_basic = NULL;
+    }
+
+    if (editor->texture_spawn_tank != NULL) {
+        SDL_DestroyTexture(editor->texture_spawn_tank);
+        editor->texture_spawn_tank = NULL;
+    }
+
+    if (editor->texture_spawn_shooter != NULL) {
+        SDL_DestroyTexture(editor->texture_spawn_shooter);
+        editor->texture_spawn_shooter = NULL;
+    }
+
+    if (editor->texture_spawn_boss != NULL) {
+        SDL_DestroyTexture(editor->texture_spawn_boss);
+        editor->texture_spawn_boss = NULL;
     }
 }
 
