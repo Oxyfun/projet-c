@@ -22,6 +22,7 @@ endif
 
 SOURCES = src/core/main.c \
           src/core/menu.c \
+          src/items/item.c \
           src/levels/dungeon.c \
           src/levels/level_editor.c \
           src/levels/room.c \

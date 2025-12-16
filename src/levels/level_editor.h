@@ -12,10 +12,16 @@ typedef struct {
     SDL_Texture* texture_rock;
     SDL_Texture* texture_door;
     SDL_Texture* texture_chest;
+<<<<<<< HEAD
     SDL_Texture* texture_spawn_basic;
     SDL_Texture* texture_spawn_tank;
     SDL_Texture* texture_spawn_shooter;
     SDL_Texture* texture_spawn_boss;
+=======
+    SDL_Texture* texture_spawn;
+    SDL_Texture* texture_item_coeur;
+    SDL_Texture* texture_item_piment;
+>>>>>>> 51943c440a6468b9fbb32fc6db4747f11bfb43d9
     SDL_Rect grid_rect;
     int hovered_row;
     int hovered_col;

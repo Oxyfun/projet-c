@@ -79,7 +79,6 @@ static bool level_editor_compute_next_save_path(char* out_path, size_t size) {
 }
 
 static void level_editor_save(LevelEditor* editor) {
-    // Vérifier si la salle contient au moins une porte
     bool has_door = false;
     bool door_placement_invalid = false;
 
@@ -87,8 +86,6 @@ static void level_editor_save(LevelEditor* editor) {
         for (int c = 0; c < ROOM_COLS; c++) {
             if (room_tile_has(&editor->room, r, c, TILE_DOOR)) {
                 has_door = true;
-                
-                // Vérifier si la porte est sur un bord
                 bool is_edge = (r == 0 || r == ROOM_ROWS - 1 || c == 0 || c == ROOM_COLS - 1);
                 if (!is_edge) {
                     door_placement_invalid = true;
@@ -145,6 +142,7 @@ void level_editor_init(LevelEditor* editor, SDL_Renderer* renderer) {
     editor->texture_rock = load_texture(renderer, "assets/images/decor/Sprite-rock.png");
     editor->texture_door = load_texture(renderer, "assets/images/decor/Sprite-porte.png");
     editor->texture_chest = load_texture(renderer, "assets/images/decor/Sprite-coffre.png");
+<<<<<<< HEAD
     editor->texture_spawn_basic = load_texture(renderer, "assets/images/monstre/basique/basique_bas.png");
     editor->texture_spawn_tank = load_texture(renderer, "assets/images/monstre/tank/tank_bas.png");
     editor->texture_spawn_shooter = load_texture(renderer, "assets/images/monstre/shooter/shooter_droite.png");
@@ -155,6 +153,17 @@ void level_editor_init(LevelEditor* editor, SDL_Renderer* renderer) {
     printf("Touches: 1 sol | 2 rocher | 3 porte | 4 coffre\n");
     printf("         I basique | O tank | P shooter | B boss\n");
     printf("         0 vide | C vider | S sauver | L charger aleatoire | ESC retour menu\n");
+=======
+    editor->texture_spawn = load_texture(renderer, "assets/images/monstre/monstre_bas.png");
+    
+    editor->texture_item_coeur = load_texture(renderer, "items/coeur/coeur.png");
+    editor->texture_item_piment = load_texture(renderer, "items/piment/piment.png");
+
+    printf("=== Editeur de niveaux actif ===\n");
+    printf("Clic gauche: poser | Clic droit: effacer\n");
+    printf("Touches: 1 sol | 2 rocher | 3 porte | 4 coffre | 5 spawn monstre | 6 coeur | 7 piment | 0 vide\n");
+    printf("C vider | S sauver | L charger aleatoire | ESC retour menu\n");
+>>>>>>> 51943c440a6468b9fbb32fc6db4747f11bfb43d9
 }
 
 void level_editor_handle_event(LevelEditor* editor, SDL_Event* event) {
@@ -210,6 +219,12 @@ void level_editor_handle_event(LevelEditor* editor, SDL_Event* event) {
                     break;
                 case SDLK_b:
                     editor->selected_tile = TILE_MONSTER_SPAWN_BOSS;
+                    break;
+                case SDLK_6:
+                    editor->selected_tile = TILE_ITEM_COEUR;
+                    break;
+                case SDLK_7:
+                    editor->selected_tile = TILE_ITEM_PIMENT;
                     break;
                 case SDLK_c:
                     level_editor_clear(editor);
@@ -309,6 +324,18 @@ static void level_editor_render_selected_tile(LevelEditor* editor, SDL_Renderer*
                 SDL_RenderFillRect(renderer, &inner);
             }
         }
+
+        if ((editor->selected_tile & TILE_ITEM_COEUR) != 0) {
+            if (editor->texture_item_coeur != NULL) {
+                SDL_RenderCopy(renderer, editor->texture_item_coeur, NULL, &inner);
+            }
+        }
+
+        if ((editor->selected_tile & TILE_ITEM_PIMENT) != 0) {
+            if (editor->texture_item_piment != NULL) {
+                SDL_RenderCopy(renderer, editor->texture_item_piment, NULL, &inner);
+            }
+        }
     }
 
     SDL_SetRenderDrawColor(renderer, 200, 200, 200, 255);
@@ -337,10 +364,16 @@ void level_editor_render(LevelEditor* editor, SDL_Renderer* renderer) {
             bool has_rock = room_tile_has(&editor->room, r, c, TILE_ROCK);
             bool has_door = room_tile_has(&editor->room, r, c, TILE_DOOR);
             bool has_chest = room_tile_has(&editor->room, r, c, TILE_CHEST);
+<<<<<<< HEAD
             bool has_spawn_basic = room_tile_has(&editor->room, r, c, TILE_MONSTER_SPAWN_BASIC);
             bool has_spawn_tank = room_tile_has(&editor->room, r, c, TILE_MONSTER_SPAWN_TANK);
             bool has_spawn_shooter = room_tile_has(&editor->room, r, c, TILE_MONSTER_SPAWN_SHOOTER);
             bool has_spawn_boss = room_tile_has(&editor->room, r, c, TILE_MONSTER_SPAWN_BOSS);
+=======
+            bool has_spawn = room_tile_has(&editor->room, r, c, TILE_MONSTER_SPAWN);
+            bool has_item_coeur = room_tile_has(&editor->room, r, c, TILE_ITEM_COEUR);
+            bool has_item_piment = room_tile_has(&editor->room, r, c, TILE_ITEM_PIMENT);
+>>>>>>> 51943c440a6468b9fbb32fc6db4747f11bfb43d9
 
             if (has_floor) {
                 if (editor->texture_floor != NULL) {
@@ -349,7 +382,11 @@ void level_editor_render(LevelEditor* editor, SDL_Renderer* renderer) {
                     SDL_SetRenderDrawColor(renderer, 90, 90, 90, 255);
                     SDL_RenderFillRect(renderer, &cell);
                 }
+<<<<<<< HEAD
             } else if (!has_rock && !has_door && !has_chest && !has_spawn_basic && !has_spawn_tank && !has_spawn_shooter && !has_spawn_boss) {
+=======
+            } else if (!has_rock && !has_door && !has_chest && !has_spawn && !has_item_coeur && !has_item_piment) {
+>>>>>>> 51943c440a6468b9fbb32fc6db4747f11bfb43d9
                 SDL_SetRenderDrawColor(renderer, 40, 40, 60, 255);
                 SDL_RenderFillRect(renderer, &cell);
             }
@@ -381,15 +418,22 @@ void level_editor_render(LevelEditor* editor, SDL_Renderer* renderer) {
                 }
             }
 
+<<<<<<< HEAD
             if (has_spawn_basic) {
                 if (editor->texture_spawn_basic != NULL) {
                     SDL_RenderCopy(renderer, editor->texture_spawn_basic, NULL, &cell);
+=======
+            if (has_spawn) {
+                if (editor->texture_spawn != NULL) {
+                    SDL_RenderCopy(renderer, editor->texture_spawn, NULL, &cell);
+>>>>>>> 51943c440a6468b9fbb32fc6db4747f11bfb43d9
                 } else {
                     SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
                     SDL_RenderFillRect(renderer, &cell);
                 }
             }
 
+<<<<<<< HEAD
             if (has_spawn_tank) {
                 if (editor->texture_spawn_tank != NULL) {
                     SDL_RenderCopy(renderer, editor->texture_spawn_tank, NULL, &cell);
@@ -417,6 +461,17 @@ void level_editor_render(LevelEditor* editor, SDL_Renderer* renderer) {
                     // Boss cell: purple square (matching preview)
                     SDL_SetRenderDrawColor(renderer, 128, 0, 255, 255);
                     SDL_RenderFillRect(renderer, &cell);
+=======
+            if (has_item_coeur) {
+                if (editor->texture_item_coeur != NULL) {
+                    SDL_RenderCopy(renderer, editor->texture_item_coeur, NULL, &cell);
+                }
+            }
+
+            if (has_item_piment) {
+                if (editor->texture_item_piment != NULL) {
+                    SDL_RenderCopy(renderer, editor->texture_item_piment, NULL, &cell);
+>>>>>>> 51943c440a6468b9fbb32fc6db4747f11bfb43d9
                 }
             }
 
@@ -483,6 +538,16 @@ void level_editor_cleanup(LevelEditor* editor) {
     if (editor->texture_spawn_boss != NULL) {
         SDL_DestroyTexture(editor->texture_spawn_boss);
         editor->texture_spawn_boss = NULL;
+    }
+
+    if (editor->texture_item_coeur != NULL) {
+        SDL_DestroyTexture(editor->texture_item_coeur);
+        editor->texture_item_coeur = NULL;
+    }
+
+    if (editor->texture_item_piment != NULL) {
+        SDL_DestroyTexture(editor->texture_item_piment);
+        editor->texture_item_piment = NULL;
     }
 }
 

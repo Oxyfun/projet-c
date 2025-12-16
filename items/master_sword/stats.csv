@@ -1,0 +1,5 @@
+name=Master Sword
+description=Epee legendaire +5 degats
+sprite=master_sword.png
+damage=5.0
+

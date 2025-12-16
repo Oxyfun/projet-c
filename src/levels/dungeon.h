@@ -9,8 +9,6 @@
 #define MIN_ROOMS 8
 #define MAX_ROOMS 12
 
-// Masques binaires pour les portes de chaques salle, 
-// Si une porte nord et sud alors le mask est 0001 + 0010 = 3
 typedef enum {
     DOOR_NONE = 0,
     DOOR_UP = 1 << 0,
@@ -29,11 +27,9 @@ typedef struct {
     RoomTemplate templates[MAX_TEMPLATES];
     int template_count;
     
-    // La grille du donjon contient des copies des salles templates
     Room grid[DUNGEON_MAP_SIZE][DUNGEON_MAP_SIZE];
-    bool has_room[DUNGEON_MAP_SIZE][DUNGEON_MAP_SIZE]; // pour pas que la génération repasse sur une salle déjà créer
+    bool has_room[DUNGEON_MAP_SIZE][DUNGEON_MAP_SIZE];
     
-    // Position actuelle du joueur dans la grille du donjon
     int current_map_x;
     int current_map_y;
 } Dungeon;

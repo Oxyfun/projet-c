@@ -19,6 +19,9 @@ typedef enum {
     TILE_MONSTER_SPAWN_TANK = 1 << 5,
     TILE_MONSTER_SPAWN_SHOOTER = 1 << 6,
     TILE_MONSTER_SPAWN_BOSS = 1 << 7,
+    TILE_ITEM_COEUR = 1 << 8,
+    TILE_ITEM_PIMENT = 1 << 9,
+    TILE_CHEST_OPENED = 1 << 10,
     // Alias pour rétro-compatibilité (défaut vers basic)
     TILE_MONSTER_SPAWN = TILE_MONSTER_SPAWN_BASIC
 } TileType;

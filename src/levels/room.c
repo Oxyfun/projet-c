@@ -88,6 +88,15 @@ void room_set_tile(Room* room, int row, int col, TileType tile) {
     if ((value & (TILE_MONSTER_SPAWN_BASIC | TILE_MONSTER_SPAWN_TANK | TILE_MONSTER_SPAWN_SHOOTER | TILE_MONSTER_SPAWN_BOSS)) != 0) {
         value |= TILE_FLOOR;
     }
+    if ((value & TILE_CHEST_OPENED) != 0) {
+        value |= TILE_FLOOR;
+    }
+    if ((value & TILE_ITEM_COEUR) != 0) {
+        value |= TILE_FLOOR;
+    }
+    if ((value & TILE_ITEM_PIMENT) != 0) {
+        value |= TILE_FLOOR;
+    }
 
     room->tiles[row][col] = value;
 }
@@ -124,6 +133,18 @@ void room_add_tile(Room* room, int row, int col, TileType tile) {
         current |= ((tile & (TILE_MONSTER_SPAWN_BASIC | TILE_MONSTER_SPAWN_TANK | TILE_MONSTER_SPAWN_SHOOTER | TILE_MONSTER_SPAWN_BOSS)) | TILE_FLOOR);
     }
 
+    if ((tile & TILE_CHEST_OPENED) != 0) {
+        current |= (TILE_CHEST_OPENED | TILE_FLOOR);
+    }
+
+    if ((tile & TILE_ITEM_COEUR) != 0) {
+        current |= (TILE_ITEM_COEUR | TILE_FLOOR);
+    }
+
+    if ((tile & TILE_ITEM_PIMENT) != 0) {
+        current |= (TILE_ITEM_PIMENT | TILE_FLOOR);
+    }
+
     room->tiles[row][col] = current;
 }
 
@@ -151,6 +172,18 @@ void room_remove_tile(Room* room, int row, int col, TileType tile) {
         current |= TILE_FLOOR;
     }
     if ((current & (TILE_MONSTER_SPAWN_BASIC | TILE_MONSTER_SPAWN_TANK | TILE_MONSTER_SPAWN_SHOOTER | TILE_MONSTER_SPAWN_BOSS)) != 0) {
+        current |= TILE_FLOOR;
+    }
+    if ((current & TILE_CHEST_OPENED) != 0) {
+        current |= TILE_FLOOR;
+    }
+    if ((current & TILE_MONSTER_SPAWN) != 0) {
+        current |= TILE_FLOOR;
+    }
+    if ((current & TILE_ITEM_COEUR) != 0) {
+        current |= TILE_FLOOR;
+    }
+    if ((current & TILE_ITEM_PIMENT) != 0) {
         current |= TILE_FLOOR;
     }
 
@@ -188,8 +221,6 @@ bool room_check_collision(const Room* room, const SDL_Rect* room_rect, float x, 
         int col = 0;
 
         if (!room_world_to_cell(room_rect, sample_points[i][0], sample_points[i][1], &row, &col)) {
-            // Si on est hors des limites de la grille (mais dans le jeu), on considère ça comme une collision (murs invisibles)
-            // Sauf si on implémente des portes qui permettent de sortir
             return true;
         }
 
@@ -236,7 +267,6 @@ static void room_parse_line(Room* room, int row, const char* line) {
         col++;
     }
 
-    // Si la ligne n'a pas assez de valeurs, on complète avec du sol
     while (col < ROOM_COLS) {
         room_set_tile(room, row, col, TILE_FLOOR);
         col++;
@@ -287,7 +317,6 @@ bool room_load_csv(Room* room, const char* path) {
         row++;
     }
 
-    // Si le fichier est plus court que prevu, on complète
     while (row < ROOM_ROWS) {
         for (int c = 0; c < ROOM_COLS; c++) {
             room_set_tile(room, row, c, TILE_FLOOR);
