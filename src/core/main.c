@@ -222,7 +222,7 @@ int main(int argc, char* argv[]) {
         exit(EXIT_FAILURE);
     }
 
-    // init SDL_image pour PNG
+    // Initialisation de SDL_image pour PNG
     int imgFlags = IMG_INIT_PNG;
     if (!(IMG_Init(imgFlags) & imgFlags)) {
         printf("Erreur lors de l'initialisation de SDL_image: %s\n", IMG_GetError());
@@ -365,7 +365,7 @@ int main(int argc, char* argv[]) {
     srand((unsigned int)time(NULL));
 
     while (running) {
-        // calcul delta time entre frames pour pas que vitesse depend des FPS
+        // Calcul du delta time entre frames pour pas que vitesse depend des FPS
         Uint32 current_time_ms = SDL_GetTicks();
         float delta_time = (current_time_ms - last_time) / MS_TO_SECONDS;
         float current_time = current_time_ms / MS_TO_SECONDS;
