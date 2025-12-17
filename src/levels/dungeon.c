@@ -160,6 +160,27 @@ void dungeon_generate(Dungeon* dungeon) {
         }
     }
 
+    // Verifier si il y a au moins une room avec un boss
+    bool has_boss = false;
+    for (int i = 0; i < room_count; i++) {
+        int x = occupied_points[i].x;
+        int y = occupied_points[i].y;
+        for (int r = 0; r < ROOM_ROWS; r++) {
+            for (int c = 0; c < ROOM_COLS; c++) {
+                if (room_tile_has(&dungeon->grid[x][y], r, c, TILE_MONSTER_SPAWN_BOSS)) {
+                    has_boss = true;
+                    break;
+                }
+            }
+            if (has_boss) break;
+        }
+        if (has_boss) break;
+    }
+
+    if (!has_boss) {
+        printf("Aucune room avec un boss trouvee\n");
+    }
+
     dungeon->current_map_x = cx;
     dungeon->current_map_y = cy;
 }

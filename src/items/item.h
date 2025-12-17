@@ -1,4 +1,4 @@
-#ifndef ITEM_H
+﻿#ifndef ITEM_H
 #define ITEM_H
 
 #include "../utils/sdl_common.h"
