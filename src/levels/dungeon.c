@@ -154,10 +154,9 @@ void dungeon_generate(Dungeon* dungeon) {
     int boss_room_index = -1;
     if (boss_template != NULL) {
         boss_room_index = rand() % room_count;
-        printf("Salle avec boss trouvee et placee a la position (%d, %d)\n", 
-               occupied_points[boss_room_index].x, occupied_points[boss_room_index].y);
+        printf("Salle avec boss trouvee et placee a la position");
     } else {
-        printf("WARNING: Aucune salle avec boss trouvee dans les templates!\n");
+        printf("Aucune salle avec boss trouvee!\n");
     }
 
     for (int i = 0; i < room_count; i++) {
