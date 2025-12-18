@@ -47,6 +47,7 @@ static bool room_world_to_cell(const SDL_Rect* room_rect, float x, float y, int*
     return true;
 }
 
+// initialiser la salle
 void room_init(Room* room) {
     if (room == NULL) {
         return;
@@ -57,6 +58,7 @@ void room_init(Room* room) {
     room_fill(room, TILE_FLOOR);
 }
 
+// remplir toute la salle avec un type de tuile
 void room_fill(Room* room, TileType tile) {
     if (room == NULL) {
         return;
@@ -69,6 +71,7 @@ void room_fill(Room* room, TileType tile) {
     }
 }
 
+// definir une tuile a une position donnee
 void room_set_tile(Room* room, int row, int col, TileType tile) {
     if (room == NULL || !room_is_valid_index(row, col)) {
         return;
@@ -76,32 +79,35 @@ void room_set_tile(Room* room, int row, int col, TileType tile) {
 
     TileType value = tile;
 
-    if ((value & TILE_ROCK) != 0) {
-        value |= TILE_FLOOR;
+    if (value == TILE_ROCK || (value & TILE_ROCK) != 0) {
+        value = value | TILE_FLOOR;
     }
-    if ((value & TILE_DOOR) != 0) {
-        value |= TILE_FLOOR;
+    if (value == TILE_DOOR || (value & TILE_DOOR) != 0) {
+        value = value | TILE_FLOOR;
     }
-    if ((value & TILE_CHEST) != 0) {
-        value |= TILE_FLOOR;
+    if (value == TILE_CHEST || (value & TILE_CHEST) != 0) {
+        value = value | TILE_FLOOR;
     }
-
-    if ((value & (TILE_MONSTER_SPAWN_BASIC | TILE_MONSTER_SPAWN_TANK | TILE_MONSTER_SPAWN_SHOOTER | TILE_MONSTER_SPAWN_BOSS)) != 0) {
-        value |= TILE_FLOOR;
+    if ((value & TILE_MONSTER_SPAWN_BASIC) != 0 || 
+        (value & TILE_MONSTER_SPAWN_TANK) != 0 || 
+        (value & TILE_MONSTER_SPAWN_SHOOTER) != 0 || 
+        (value & TILE_MONSTER_SPAWN_BOSS) != 0) {
+        value = value | TILE_FLOOR;
     }
     if ((value & TILE_CHEST_OPENED) != 0) {
-        value |= TILE_FLOOR;
+        value = value | TILE_FLOOR;
     }
     if ((value & TILE_ITEM_COEUR) != 0) {
-        value |= TILE_FLOOR;
+        value = value | TILE_FLOOR;
     }
     if ((value & TILE_ITEM_PIMENT) != 0) {
-        value |= TILE_FLOOR;
+        value = value | TILE_FLOOR;
     }
 
     room->tiles[row][col] = value;
 }
 
+// ajouter un type de tuile a une position existante
 void room_add_tile(Room* room, int row, int col, TileType tile) {
     if (room == NULL || !room_is_valid_index(row, col)) {
         return;
@@ -114,41 +120,60 @@ void room_add_tile(Room* room, int row, int col, TileType tile) {
 
     TileType current = room->tiles[row][col];
 
-    if ((tile & TILE_FLOOR) != 0) {
-        current |= TILE_FLOOR;
+    if (tile == TILE_FLOOR || (tile & TILE_FLOOR) != 0) {
+        current = current | TILE_FLOOR;
     }
 
-    if ((tile & TILE_ROCK) != 0) {
-        current |= (TILE_ROCK | TILE_FLOOR);
+    if (tile == TILE_ROCK || (tile & TILE_ROCK) != 0) {
+        current = current | TILE_ROCK;
+        current = current | TILE_FLOOR;
     }
 
-    if ((tile & TILE_DOOR) != 0) {
-        current |= (TILE_DOOR | TILE_FLOOR);
+    if (tile == TILE_DOOR || (tile & TILE_DOOR) != 0) {
+        current = current | TILE_DOOR;
+        current = current | TILE_FLOOR;
     }
 
-    if ((tile & TILE_CHEST) != 0) {
-        current |= (TILE_CHEST | TILE_FLOOR);
+    if (tile == TILE_CHEST || (tile & TILE_CHEST) != 0) {
+        current = current | TILE_CHEST;
+        current = current | TILE_FLOOR;
     }
 
-    if ((tile & (TILE_MONSTER_SPAWN_BASIC | TILE_MONSTER_SPAWN_TANK | TILE_MONSTER_SPAWN_SHOOTER | TILE_MONSTER_SPAWN_BOSS)) != 0) {
-        current |= ((tile & (TILE_MONSTER_SPAWN_BASIC | TILE_MONSTER_SPAWN_TANK | TILE_MONSTER_SPAWN_SHOOTER | TILE_MONSTER_SPAWN_BOSS)) | TILE_FLOOR);
+    if ((tile & TILE_MONSTER_SPAWN_BASIC) != 0) {
+        current = current | TILE_MONSTER_SPAWN_BASIC;
+        current = current | TILE_FLOOR;
+    }
+    if ((tile & TILE_MONSTER_SPAWN_TANK) != 0) {
+        current = current | TILE_MONSTER_SPAWN_TANK;
+        current = current | TILE_FLOOR;
+    }
+    if ((tile & TILE_MONSTER_SPAWN_SHOOTER) != 0) {
+        current = current | TILE_MONSTER_SPAWN_SHOOTER;
+        current = current | TILE_FLOOR;
+    }
+    if ((tile & TILE_MONSTER_SPAWN_BOSS) != 0) {
+        current = current | TILE_MONSTER_SPAWN_BOSS;
+        current = current | TILE_FLOOR;
     }
 
     if ((tile & TILE_CHEST_OPENED) != 0) {
-        current |= (TILE_CHEST_OPENED | TILE_FLOOR);
+        current = current | TILE_CHEST_OPENED;
+        current = current | TILE_FLOOR;
     }
 
     if ((tile & TILE_ITEM_COEUR) != 0) {
-        current |= (TILE_ITEM_COEUR | TILE_FLOOR);
+        current = current | TILE_ITEM_COEUR;
+        current = current | TILE_FLOOR;
     }
-
     if ((tile & TILE_ITEM_PIMENT) != 0) {
-        current |= (TILE_ITEM_PIMENT | TILE_FLOOR);
+        current = current | TILE_ITEM_PIMENT;
+        current = current | TILE_FLOOR;
     }
 
     room->tiles[row][col] = current;
 }
 
+// retirer un type de tuile d'une position
 void room_remove_tile(Room* room, int row, int col, TileType tile) {
     if (room == NULL || !room_is_valid_index(row, col)) {
         return;
@@ -161,46 +186,65 @@ void room_remove_tile(Room* room, int row, int col, TileType tile) {
         return;
     }
 
-    current &= ~tile;
+    current = current & (~tile);
 
     if ((current & TILE_ROCK) != 0) {
-        current |= TILE_FLOOR;
+        current = current | TILE_FLOOR;
     }
     if ((current & TILE_DOOR) != 0) {
-        current |= TILE_FLOOR;
+        current = current | TILE_FLOOR;
     }
     if ((current & TILE_CHEST) != 0) {
-        current |= TILE_FLOOR;
+        current = current | TILE_FLOOR;
     }
-    if ((current & (TILE_MONSTER_SPAWN_BASIC | TILE_MONSTER_SPAWN_TANK | TILE_MONSTER_SPAWN_SHOOTER | TILE_MONSTER_SPAWN_BOSS)) != 0) {
-        current |= TILE_FLOOR;
+    if ((current & TILE_MONSTER_SPAWN_BASIC) != 0 || 
+        (current & TILE_MONSTER_SPAWN_TANK) != 0 || 
+        (current & TILE_MONSTER_SPAWN_SHOOTER) != 0 || 
+        (current & TILE_MONSTER_SPAWN_BOSS) != 0) {
+        current = current | TILE_FLOOR;
     }
     if ((current & TILE_CHEST_OPENED) != 0) {
-        current |= TILE_FLOOR;
+        current = current | TILE_FLOOR;
     }
     if ((current & TILE_ITEM_COEUR) != 0) {
-        current |= TILE_FLOOR;
+        current = current | TILE_FLOOR;
     }
     if ((current & TILE_ITEM_PIMENT) != 0) {
-        current |= TILE_FLOOR;
+        current = current | TILE_FLOOR;
     }
 
     room->tiles[row][col] = current;
 }
 
+// verifier si une tuile contient un type specifique
 bool room_tile_has(const Room* room, int row, int col, TileType tile) {
-    if (room == NULL || !room_is_valid_index(row, col)) {
+    if (room == NULL) {
+        return false;
+    }
+    
+    if (!room_is_valid_index(row, col)) {
         return false;
     }
 
-    return (room->tiles[row][col] & tile) != 0;
+    if ((room->tiles[row][col] & tile) != 0) {
+        return true;
+    }
+    
+    return false;
 }
 
+// verifier si une tuile bloque le mouvement
 bool room_tile_is_blocking(const Room* room, int row, int col) {
-    return room_tile_has(room, row, col, TILE_ROCK) || 
-           room_tile_has(room, row, col, TILE_CHEST);
+    if (room_tile_has(room, row, col, TILE_ROCK)) {
+        return true;
+    }
+    if (room_tile_has(room, row, col, TILE_CHEST)) {
+        return true;
+    }
+    return false;
 }
 
+// detecter les collisions entre un rectangle et la salle
 bool room_check_collision(const Room* room, const SDL_Rect* room_rect, float x, float y, float w, float h) {
     if (room == NULL || room_rect == NULL) {
         return false;
@@ -232,37 +276,57 @@ bool room_check_collision(const Room* room, const SDL_Rect* room_rect, float x, 
 
 static void room_parse_line(Room* room, int row, const char* line) {
     char buffer[512];
+    int i;
+    int col = 0;
+    int value;
+    TileType tile;
+    
     strncpy(buffer, line, sizeof(buffer) - 1);
     buffer[sizeof(buffer) - 1] = '\0';
 
-    char* token = strtok(buffer, ";\r\n");
-    int col = 0;
-
-    while (token != NULL && col < ROOM_COLS) {
-        int value = atoi(token);
+    i = 0;
+    while (buffer[i] != '\0' && col < ROOM_COLS) {
+        int start = i;
+        while (buffer[i] != ';' && buffer[i] != '\0' && buffer[i] != '\r' && buffer[i] != '\n') {
+            i++;
+        }
+        
+        char temp[20];
+        int j;
+        for (j = 0; j < i - start && j < 19; j++) {
+            temp[j] = buffer[start + j];
+        }
+        temp[j] = '\0';
+        
+        value = atoi(temp);
         if (value < 0) {
             value = 0;
         }
 
-        TileType tile = (TileType)(value & (TILE_FLOOR | TILE_ROCK | TILE_DOOR | TILE_CHEST | TILE_MONSTER_SPAWN_BASIC | TILE_MONSTER_SPAWN_TANK | TILE_MONSTER_SPAWN_SHOOTER | TILE_MONSTER_SPAWN_BOSS));
+        tile = (TileType)value;
 
         if ((tile & TILE_ROCK) != 0) {
-            tile |= TILE_FLOOR;
+            tile = tile | TILE_FLOOR;
         }
         if ((tile & TILE_DOOR) != 0) {
-            tile |= TILE_FLOOR;
+            tile = tile | TILE_FLOOR;
         }
         if ((tile & TILE_CHEST) != 0) {
-            tile |= TILE_FLOOR;
+            tile = tile | TILE_FLOOR;
         }
-        if ((tile & (TILE_MONSTER_SPAWN_BASIC | TILE_MONSTER_SPAWN_TANK | TILE_MONSTER_SPAWN_SHOOTER | TILE_MONSTER_SPAWN_BOSS)) != 0) {
-            tile |= TILE_FLOOR;
+        if ((tile & TILE_MONSTER_SPAWN_BASIC) != 0 || 
+            (tile & TILE_MONSTER_SPAWN_TANK) != 0 || 
+            (tile & TILE_MONSTER_SPAWN_SHOOTER) != 0 || 
+            (tile & TILE_MONSTER_SPAWN_BOSS) != 0) {
+            tile = tile | TILE_FLOOR;
         }
 
         room_set_tile(room, row, col, tile);
-
-        token = strtok(NULL, ";\r\n");
         col++;
+
+        if (buffer[i] == ';') {
+            i++;
+        }
     }
 
     while (col < ROOM_COLS) {
@@ -271,6 +335,7 @@ static void room_parse_line(Room* room, int row, const char* line) {
     }
 }
 
+// sauvegarder la salle dans un fichier CSV
 bool room_save_csv(const Room* room, const char* path) {
     if (room == NULL || path == NULL) {
         return false;
@@ -296,6 +361,7 @@ bool room_save_csv(const Room* room, const char* path) {
     return true;
 }
 
+// charger une salle depuis un fichier CSV
 bool room_load_csv(Room* room, const char* path) {
     if (room == NULL || path == NULL) {
         return false;
@@ -326,6 +392,7 @@ bool room_load_csv(Room* room, const char* path) {
     return true;
 }
 
+// collecter tous les fichiers CSV dans un repertoire
 int room_collect_csv_files(const char* directory, char files[][400], int max_files) {
     if (directory == NULL || files == NULL || max_files <= 0) {
         return 0;
@@ -360,15 +427,26 @@ int room_collect_csv_files(const char* directory, char files[][400], int max_fil
         return 0;
     }
 
-    struct dirent* entry = NULL;
-    while ((entry = readdir(dir)) != NULL && count < max_files) {
+    struct dirent* entry;
+    int len;
+    int i;
+    
+    entry = readdir(dir);
+    while (entry != NULL && count < max_files) {
         if (entry->d_type == DT_REG || entry->d_type == DT_UNKNOWN) {
-            size_t len = strlen(entry->d_name);
-            if (len > 4 && strcmp(entry->d_name + len - 4, ".csv") == 0) {
-                snprintf(files[count], 260, "%s/%s", directory, entry->d_name);
-                count++;
+            len = strlen(entry->d_name);
+            if (len > 4) {
+                i = len - 4;
+                if (entry->d_name[i] == '.' && 
+                    entry->d_name[i+1] == 'c' && 
+                    entry->d_name[i+2] == 's' && 
+                    entry->d_name[i+3] == 'v') {
+                    snprintf(files[count], 260, "%s/%s", directory, entry->d_name);
+                    count++;
+                }
             }
         }
+        entry = readdir(dir);
     }
 
     closedir(dir);
@@ -377,6 +455,7 @@ int room_collect_csv_files(const char* directory, char files[][400], int max_fil
     return count;
 }
 
+// charger une salle aleatoire depuis un repertoire
 bool room_load_random(Room* room, const char* directory) {
     if (room == NULL || directory == NULL) {
         return false;

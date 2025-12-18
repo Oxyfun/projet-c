@@ -3,6 +3,7 @@
 #include "../core/menu.h"
 #include <stdio.h>
 
+// convertir position souris en cellule de grille
 static bool level_editor_mouse_to_cell(LevelEditor* editor, int mouse_x, int mouse_y, int* out_row, int* out_col) {
     int local_x = mouse_x - editor->grid_rect.x;
     int local_y = mouse_y - editor->grid_rect.y;
@@ -26,6 +27,7 @@ static bool level_editor_mouse_to_cell(LevelEditor* editor, int mouse_x, int mou
     return true;
 }
 
+// mettre a jour la cellule survolee
 static void level_editor_update_hover(LevelEditor* editor, int mouse_x, int mouse_y) {
     editor->hovered_row = -1;
     editor->hovered_col = -1;
@@ -45,6 +47,7 @@ static void level_editor_update_hover(LevelEditor* editor, int mouse_x, int mous
     editor->hovered_row = local_y / ROOM_CELL_SIZE;
 }
 
+// placer ou retirer une tuile
 static void level_editor_place_tile(LevelEditor* editor, int row, int col, TileType type) {
     if (row < 0 || row >= ROOM_ROWS || col < 0 || col >= ROOM_COLS) {
         return;
@@ -57,27 +60,38 @@ static void level_editor_place_tile(LevelEditor* editor, int row, int col, TileT
     }
 }
 
+// vider la salle en cours d'edition
 static void level_editor_clear(LevelEditor* editor) {
     room_fill(&editor->room, TILE_FLOOR);
 }
 
+// calculer le prochain nom de fichier disponible
 static bool level_editor_compute_next_save_path(char* out_path, size_t size) {
-    for (int i = 1; i < 1000; i++) {
-        char candidate[260];
-        snprintf(candidate, sizeof(candidate), ROOMS_DIRECTORY "/room_%03d.csv", i);
+    int i;
+    char candidate[260];
+    FILE* test;
+    
+    for (i = 1; i < 1000; i++) {
+        if (i < 10) {
+            snprintf(candidate, sizeof(candidate), ROOMS_DIRECTORY "/room_00%d.csv", i);
+        } else if (i < 100) {
+            snprintf(candidate, sizeof(candidate), ROOMS_DIRECTORY "/room_0%d.csv", i);
+        } else {
+            snprintf(candidate, sizeof(candidate), ROOMS_DIRECTORY "/room_%d.csv", i);
+        }
 
-        FILE* test = fopen(candidate, "r");
+        test = fopen(candidate, "r");
         if (test == NULL) {
             snprintf(out_path, size, "%s", candidate);
             return true;
         }
-
         fclose(test);
     }
 
     return false;
 }
 
+// sauvegarder la salle en cours d'edition
 static void level_editor_save(LevelEditor* editor) {
     bool has_door = false;
     bool door_placement_invalid = false;
@@ -117,12 +131,14 @@ static void level_editor_save(LevelEditor* editor) {
     }
 }
 
+// charger une salle aleatoire dans l'editeur
 static void level_editor_load_random(LevelEditor* editor) {
     if (room_load_random(&editor->room, ROOMS_DIRECTORY)) {
         printf("Salle chargee depuis un fichier aleatoire.\n");
     }
 }
 
+// initialiser l'editeur de niveaux
 void level_editor_init(LevelEditor* editor, SDL_Renderer* renderer) {
     if (editor == NULL) {
         return;
@@ -158,6 +174,7 @@ void level_editor_init(LevelEditor* editor, SDL_Renderer* renderer) {
     printf("         0 vide | C vider | S sauver | L charger aleatoire | ESC retour menu\n");
 }
 
+// gerer les evenements de l'editeur
 void level_editor_handle_event(LevelEditor* editor, SDL_Event* event) {
     if (editor == NULL || event == NULL) {
         return;
@@ -240,11 +257,13 @@ void level_editor_handle_event(LevelEditor* editor, SDL_Event* event) {
     }
 }
 
+// mettre a jour l'editeur
 void level_editor_update(LevelEditor* editor, float dt) {
     (void)editor;
     (void)dt;
 }
 
+// afficher la tuile selectionnee
 static void level_editor_render_selected_tile(LevelEditor* editor, SDL_Renderer* renderer) {
     SDL_Rect preview = {20, WINDOW_HEIGHT - 84, 64, 64};
 
@@ -289,7 +308,6 @@ static void level_editor_render_selected_tile(LevelEditor* editor, SDL_Renderer*
 
         if ((editor->selected_tile & TILE_MONSTER_SPAWN_TANK) != 0) {
             if (editor->texture_spawn_tank != NULL) {
-                // If a specific texture is set for tank, use it; otherwise draw red square
                 SDL_RenderCopy(renderer, editor->texture_spawn_tank, NULL, &inner);
             } else {
                 SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
@@ -301,7 +319,6 @@ static void level_editor_render_selected_tile(LevelEditor* editor, SDL_Renderer*
             if (editor->texture_spawn_shooter != NULL) {
                 SDL_RenderCopy(renderer, editor->texture_spawn_shooter, NULL, &inner);
             } else {
-                // Shooter preview: green square
                 SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);
                 SDL_RenderFillRect(renderer, &inner);
             }
@@ -311,7 +328,6 @@ static void level_editor_render_selected_tile(LevelEditor* editor, SDL_Renderer*
             if (editor->texture_spawn_boss != NULL) {
                 SDL_RenderCopy(renderer, editor->texture_spawn_boss, NULL, &inner);
             } else {
-                // Boss preview: purple square
                 SDL_SetRenderDrawColor(renderer, 128, 0, 255, 255);
                 SDL_RenderFillRect(renderer, &inner);
             }
@@ -334,7 +350,7 @@ static void level_editor_render_selected_tile(LevelEditor* editor, SDL_Renderer*
     SDL_RenderDrawRect(renderer, &preview);
 }
 
-
+// afficher l'editeur a l'ecran
 void level_editor_render(LevelEditor* editor, SDL_Renderer* renderer) {
     if (editor == NULL) {
         return;
@@ -370,9 +386,14 @@ void level_editor_render(LevelEditor* editor, SDL_Renderer* renderer) {
                     SDL_SetRenderDrawColor(renderer, 90, 90, 90, 255);
                     SDL_RenderFillRect(renderer, &cell);
                 }
-            } else if (!has_rock && !has_door && !has_chest && !has_spawn_basic && !has_spawn_tank && !has_spawn_shooter && !has_spawn_boss && !has_item_coeur && !has_item_piment) {
-                SDL_SetRenderDrawColor(renderer, 40, 40, 60, 255);
-                SDL_RenderFillRect(renderer, &cell);
+            } else {
+                if (!has_rock && !has_door && !has_chest && 
+                    !has_spawn_basic && !has_spawn_tank && 
+                    !has_spawn_shooter && !has_spawn_boss && 
+                    !has_item_coeur && !has_item_piment) {
+                    SDL_SetRenderDrawColor(renderer, 40, 40, 60, 255);
+                    SDL_RenderFillRect(renderer, &cell);
+                }
             }
 
             if (has_rock) {
@@ -415,7 +436,6 @@ void level_editor_render(LevelEditor* editor, SDL_Renderer* renderer) {
                 if (editor->texture_spawn_tank != NULL) {
                     SDL_RenderCopy(renderer, editor->texture_spawn_tank, NULL, &cell);
                 } else {
-                    // Use same red square as preview for tank when no texture is provided
                     SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
                     SDL_RenderFillRect(renderer, &cell);
                 }
@@ -425,7 +445,6 @@ void level_editor_render(LevelEditor* editor, SDL_Renderer* renderer) {
                 if (editor->texture_spawn_shooter != NULL) {
                     SDL_RenderCopy(renderer, editor->texture_spawn_shooter, NULL, &cell);
                 } else {
-                    // Shooter cell: green square (matching preview)
                     SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);
                     SDL_RenderFillRect(renderer, &cell);
                 }
@@ -435,7 +454,6 @@ void level_editor_render(LevelEditor* editor, SDL_Renderer* renderer) {
                 if (editor->texture_spawn_boss != NULL) {
                     SDL_RenderCopy(renderer, editor->texture_spawn_boss, NULL, &cell);
                 } else {
-                    // Boss cell: purple square (matching preview)
                     SDL_SetRenderDrawColor(renderer, 128, 0, 255, 255);
                     SDL_RenderFillRect(renderer, &cell);
                 }
@@ -473,6 +491,7 @@ void level_editor_render(LevelEditor* editor, SDL_Renderer* renderer) {
     level_editor_render_selected_tile(editor, renderer);
 }
 
+// nettoyer les ressources de l'editeur
 void level_editor_cleanup(LevelEditor* editor) {
     if (editor == NULL) {
         return;
