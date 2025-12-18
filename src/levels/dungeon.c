@@ -134,6 +134,32 @@ void dungeon_generate(Dungeon* dungeon) {
         }
     }
 
+    // Chercher une salle avec un boss pour la placer a une position aleatoire
+    RoomTemplate* boss_template = NULL;
+    for (int i = 0; i < dungeon->template_count; i++) {
+        bool has_boss = false;
+        for (int r = 0; r < ROOM_ROWS && !has_boss; r++) {
+            for (int c = 0; c < ROOM_COLS && !has_boss; c++) {
+                if (room_tile_has(&dungeon->templates[i].room, r, c, TILE_MONSTER_SPAWN_BOSS)) {
+                    has_boss = true;
+                }
+            }
+        }
+        if (has_boss) {
+            boss_template = &dungeon->templates[i];
+            break;
+        }
+    }
+    
+    int boss_room_index = -1;
+    if (boss_template != NULL) {
+        boss_room_index = rand() % room_count;
+        printf("Salle avec boss trouvee et placee a la position (%d, %d)\n", 
+               occupied_points[boss_room_index].x, occupied_points[boss_room_index].y);
+    } else {
+        printf("WARNING: Aucune salle avec boss trouvee dans les templates!\n");
+    }
+
     for (int i = 0; i < room_count; i++) {
         int x = occupied_points[i].x;
         int y = occupied_points[i].y;
@@ -146,39 +172,23 @@ void dungeon_generate(Dungeon* dungeon) {
         if (x > 0 && dungeon->has_room[x-1][y]) required_mask |= DOOR_LEFT;
         if (x < DUNGEON_MAP_SIZE - 1 && dungeon->has_room[x+1][y]) required_mask |= DOOR_RIGHT;
 
-        // trouver un template
-        RoomTemplate* tmpl = find_matching_template(dungeon, required_mask);
-        
-        if (tmpl != NULL) {
-            dungeon->grid[x][y] = tmpl->room;
+        // Si c'est la position du boss et on l'a trouve, placer la salle avec le boss
+        if (i == boss_room_index && boss_template != NULL) {
+            dungeon->grid[x][y] = boss_template->room;
         } else {
-            room_init(&dungeon->grid[x][y]);
-            if (required_mask & DOOR_UP) room_set_tile(&dungeon->grid[x][y], 0, ROOM_COLS/2, TILE_DOOR);
-            if (required_mask & DOOR_DOWN) room_set_tile(&dungeon->grid[x][y], ROOM_ROWS-1, ROOM_COLS/2, TILE_DOOR);
-            if (required_mask & DOOR_LEFT) room_set_tile(&dungeon->grid[x][y], ROOM_ROWS/2, 0, TILE_DOOR);
-            if (required_mask & DOOR_RIGHT) room_set_tile(&dungeon->grid[x][y], ROOM_ROWS/2, ROOM_COLS-1, TILE_DOOR);
-        }
-    }
-
-    // Verifier si il y a au moins une room avec un boss
-    bool has_boss = false;
-    for (int i = 0; i < room_count; i++) {
-        int x = occupied_points[i].x;
-        int y = occupied_points[i].y;
-        for (int r = 0; r < ROOM_ROWS; r++) {
-            for (int c = 0; c < ROOM_COLS; c++) {
-                if (room_tile_has(&dungeon->grid[x][y], r, c, TILE_MONSTER_SPAWN_BOSS)) {
-                    has_boss = true;
-                    break;
-                }
+            // trouver un template normal
+            RoomTemplate* tmpl = find_matching_template(dungeon, required_mask);
+            
+            if (tmpl != NULL) {
+                dungeon->grid[x][y] = tmpl->room;
+            } else {
+                room_init(&dungeon->grid[x][y]);
+                if (required_mask & DOOR_UP) room_set_tile(&dungeon->grid[x][y], 0, ROOM_COLS/2, TILE_DOOR);
+                if (required_mask & DOOR_DOWN) room_set_tile(&dungeon->grid[x][y], ROOM_ROWS-1, ROOM_COLS/2, TILE_DOOR);
+                if (required_mask & DOOR_LEFT) room_set_tile(&dungeon->grid[x][y], ROOM_ROWS/2, 0, TILE_DOOR);
+                if (required_mask & DOOR_RIGHT) room_set_tile(&dungeon->grid[x][y], ROOM_ROWS/2, ROOM_COLS-1, TILE_DOOR);
             }
-            if (has_boss) break;
         }
-        if (has_boss) break;
-    }
-
-    if (!has_boss) {
-        printf("Aucune room avec un boss trouvee\n");
     }
 
     dungeon->current_map_x = cx;

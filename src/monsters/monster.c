@@ -245,6 +245,7 @@ void monster_update(Monster* m, float player_x, float player_y, float dt, const 
                 }
             }
         }
+
     } else {
         monster_follow(m, player_x, player_y, dt, room, room_rect);
     }

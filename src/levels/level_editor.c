@@ -1,4 +1,5 @@
-﻿#include "level_editor.h"
+﻿#define _CRT_SECURE_NO_WARNINGS
+#include "level_editor.h"
 #include "../utils/assets.h"
 #include "../core/menu.h"
 #include <stdio.h>
